@@ -1,4 +1,3 @@
-// src/app/dashboard/report-builder/_components/blocks/GroupBlock.tsx
 'use client';
 
 import React, { FC } from 'react';
@@ -26,7 +25,7 @@ export const GroupBlock: React.FC<GroupBlockProps> = ({ block, onEdit, onDuplica
     onMoveUp,
     onMoveDown,
     // Garante que isDragging também seja passado para os blocos aninhados
-    isDragging, 
+    isDragging,
   };
 
   return (
@@ -69,7 +68,7 @@ export const GroupBlock: React.FC<GroupBlockProps> = ({ block, onEdit, onDuplica
         block.groupLayout === 'row' ? 'flex-row items-stretch' : 'flex-col', // items-stretch para que os itens da linha preencham a altura
         block.groupLayout === 'row' ? `gap-${block.gap || '6'}` : `space-y-${block.gap || '6'}` // Gap maior
       )}>
-        {block.blocks.map((nestedBlock, index) => {
+        {block.blocks.map((nestedBlock, _index) => { // Corrigido 'index' para '_index'
           const BlockComponent = blockComponentsMap[nestedBlock.type];
           if (!BlockComponent) return null;
 

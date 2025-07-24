@@ -1,8 +1,7 @@
-// src/app/dashboard/report-builder/_components/blocks/TableBlock.tsx
 'use client';
 
 import React from 'react';
-import { TableBlock as TableBlockType, CommonBlockRenderProps } from '@/app/types/report-builders'; 
+import { TableBlock as TableBlockType, CommonBlockRenderProps } from '@/app/types/report-builders';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/app/components/ui/custom-elements';
 import { cn } from '@/app/lib/utils';
 
@@ -10,8 +9,20 @@ interface TableBlockProps extends CommonBlockRenderProps {
   block: TableBlockType;
 }
 
+// Definindo uma interface para a estrutura dos dados da tabela
+interface TableRowData {
+  id: number;
+  name: string;
+  leads: number;
+  cpl: number;
+  specialty: string;
+  performanceChange: string; // Mantido como string para o mock, mas pode ser number se for sempre numérico
+  alerts: number;
+  [key: string]: any; // Permite propriedades adicionais que não estão explicitamente definidas
+}
+
 // Dados mockados para demonstração
-const mockTableData = [
+const mockTableData: TableRowData[] = [
   { id: 1, name: 'Clínica Alpha', leads: 150, cpl: 12.50, specialty: 'Dermatologia', performanceChange: '5.2', alerts: 0 },
   { id: 2, name: 'Clínica Beta', leads: 80, cpl: 18.20, specialty: 'Odontologia', performanceChange: '-2.1', alerts: 1 },
   { id: 3, name: 'Clínica Gama', leads: 200, cpl: 10.00, specialty: 'Oftalmologia', performanceChange: '10.5', alerts: 0 },
@@ -20,10 +31,11 @@ const mockTableData = [
 ];
 
 export const TableBlock: React.FC<TableBlockProps> = ({ block, isDragging }) => {
-  // Assumimos que data é um array de objetos, onde cada objeto pode ter as propriedades acessadas.
-  // Usar `as any[]` aqui para silenciar o erro de 'unknown' no map,
-  // pois a estrutura dos dados é controlada pelas `columns`.
-  const data = (block.tableData && block.tableData.length > 0 ? block.tableData : mockTableData) as any[];
+  // MUDANÇA CRUCIAL AQUI: Faz um cast seguro de block.tableData para TableRowData[]
+  // Isso informa ao TypeScript que, se block.tableData existir, ele deve ser tratado como TableRowData[]
+  const data: TableRowData[] = (block.tableData && block.tableData.length > 0
+    ? (block.tableData as TableRowData[]) // Cast explícito aqui
+    : mockTableData);
 
   const defaultColumns: TableBlockType['columns'] = [
     { header: 'Nome da Clínica', accessor: 'name' },
@@ -36,25 +48,32 @@ export const TableBlock: React.FC<TableBlockProps> = ({ block, isDragging }) => 
 
   const columns = block.columns && block.columns.length > 0 ? block.columns : defaultColumns;
 
-  const formatCellValue = (value: any, formatType?: 'currency' | 'percent' | 'number') => {
+  // Tipagem do 'value' mais precisa
+  const formatCellValue = (value: unknown, formatType?: 'currency' | 'percent' | 'number') => {
     if (value === null || value === undefined) return '-';
+
+    let numValue: number | undefined;
 
     // Tenta converter para número se for uma string e o formato for numérico
     if (typeof value === 'string' && (formatType === 'currency' || formatType === 'percent' || formatType === 'number')) {
-      const numValue = parseFloat(value.replace(',', '.')); // Lida com vírgula como separador decimal
-      if (!isNaN(numValue)) {
-        value = numValue;
-      } else {
-        return value; // Retorna a string original se não puder converter
+      const parsed = parseFloat(value.replace(',', '.')); // Lida com vírgula como separador decimal
+      if (!isNaN(parsed)) {
+        numValue = parsed;
+      }
+    } else if (typeof value === 'number') {
+      numValue = value;
+    }
+
+    if (numValue !== undefined) {
+      switch (formatType) {
+        case 'currency': return `R$ ${numValue.toFixed(2).replace('.', ',')}`;
+        case 'percent': return `${numValue.toFixed(1)}%`;
+        case 'number': return numValue.toLocaleString('pt-BR');
+        default: return numValue; // Retorna o número formatado se não houver formato específico
       }
     }
 
-    switch (formatType) {
-      case 'currency': return `R$ ${value.toFixed(2).replace('.', ',')}`;
-      case 'percent': return `${value.toFixed(1)}%`;
-      case 'number': return value.toLocaleString('pt-BR');
-      default: return value;
-    }
+    return String(value); // Retorna o valor original como string se não for um número ou não puder ser formatado
   };
 
   return (
@@ -104,8 +123,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ block, isDragging }) => 
           )}
           <TableBody>
             {data.map((row, rowIndex) => {
-              // Asserção de tipo para 'row' dentro do map
-              const typedRow = row as { [key: string]: any }; 
+              // 'row' já é TableRowData[]
+              const typedRow: TableRowData = row;
               return (
                 <TableRow
                   key={rowIndex}
@@ -119,8 +138,8 @@ export const TableBlock: React.FC<TableBlockProps> = ({ block, isDragging }) => 
                     const cellValue = typedRow[col.accessor];
                     const isPerformanceChange = col.accessor === 'performanceChange';
                     const isAlerts = col.accessor === 'alerts';
-                    
-                    let displayValue = formatCellValue(cellValue, col.format);
+
+                    const displayValue = formatCellValue(cellValue, col.format);
                     let textColorClass = '';
                     let prefix = '';
 

@@ -1,7 +1,6 @@
-// src/app/dashboard/report-builder/_components/blocks/ChartBlock.tsx
 'use client';
 
-import React, { useMemo } from 'react'; // Removido useState, useEffect pois não são usados diretamente aqui
+import React from 'react'; // Removido useMemo
 import { ChartBlock as ChartBlockType, ChartType, CommonBlockRenderProps } from '@/app/types/report-builders';
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
@@ -41,8 +40,11 @@ interface ChartBlockProps {
   isDragging?: CommonBlockRenderProps['isDragging'];
 }
 
+// Definindo um tipo mais específico para os dados mockados dos gráficos
+type ChartDataEntry = Record<string, any>; // Tipo genérico para entradas de dados de gráfico
+
 // Dados mockados para gráficos (mais complexos para simular filtros)
-const mockChartData = {
+const mockChartData: Record<ChartType, ChartDataEntry[]> = {
   LINE: [
     { date: '2023-01-01', clinic: 'clinic-a', value: 400 }, { date: '2023-01-08', clinic: 'clinic-a', value: 300 },
     { date: '2023-01-15', clinic: 'clinic-a', value: 500 }, { date: '2023-01-22', clinic: 'clinic-b', value: 450 },
@@ -91,7 +93,7 @@ const mockChartData = {
 
 
 export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
-  const data = mockChartData[block.chartType as keyof typeof mockChartData] || [];
+  const data: ChartDataEntry[] = mockChartData[block.chartType as keyof typeof mockChartData] || [];
 
   const defaultLineColor = block.lineColor || PRIMARY_ACCENT;
   const defaultBarColor = block.barColor || PRIMARY_ACCENT;
@@ -108,8 +110,6 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
   }
 
   const renderChart = () => {
-    // Agora, o ResponsiveContainer é o elemento de nível superior retornado,
-    // eliminando a necessidade de React.Fragment
     switch (block.chartType) {
       case ChartType.LINE:
         return (
@@ -170,7 +170,7 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
               stroke="#2C2C3E"
               paddingAngle={3}
             >
-              {(data as any[]).map((entry, index) => (
+              {data.map((entry, index) => ( // Removido 'as any[]'
                 <Cell key={`cell-${index}`} fill={defaultPieColors[index % defaultPieColors.length]} stroke={defaultPieColors[index % defaultPieColors.length]} strokeWidth={1} />
               ))}
             </Pie>
@@ -216,7 +216,7 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
           <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
             <PolarGrid stroke="#404058" />
             <PolarAngleAxis dataKey={block.xAxisKey || 'subject'} stroke="#A0A0C0" tick={{ fill: '#a0aec0', fontSize: 12 }} />
-            <PolarRadiusAxis angle={90} domain={[0, Math.max(...data.map((d: any) => d[block.dataKey as string || 'A'])) * 1.1]} stroke="#404058" tick={false} axisLine={false} />
+            <PolarRadiusAxis angle={90} domain={[0, Math.max(...data.map((d: ChartDataEntry) => d[block.dataKey as string || 'A'])) * 1.1]} stroke="#404058" tick={false} axisLine={false} /> {/* Corrigido d: any para d: ChartDataEntry */}
             <Radar
               name={Array.isArray(block.dataLabel) ? block.dataLabel[0] : block.dataLabel || 'Valor'}
               dataKey={block.dataKey as string || 'A'}
@@ -252,6 +252,7 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
                 fill={defaultPieColors[index % defaultPieColors.length]}
                 name={key}
                 radius={[5, 5, 0, 0]}
+                barSize={30}
               />
             ))}
           </BarChart>
@@ -285,7 +286,7 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
               itemStyle={{ color: '#a0aec0' }}
             />}
             <Bar dataKey={block.dataKey as string || 'value'} fill={defaultBarColor} barSize={40} radius={[0, 10, 10, 0]}>
-              {(data as any[]).map((entry, index) => (
+              {data.map((entry, index) => ( // Removido 'as any[]'
                 <Cell key={`cell-${index}`} fill={defaultPieColors[index % defaultPieColors.length]} />
               ))}
             </Bar>
@@ -338,9 +339,7 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
       )}
 
       {/* Container Responsivo para o Gráfico */}
-      {/* O ResponsiveContainer deve ser o único filho direto do div que o contém,
-          e ele próprio já gerencia a largura e altura. */}
-      <ResponsiveContainer width="100%" height="calc(100% - 60px)"> 
+      <ResponsiveContainer width="100%" height="calc(100% - 60px)">
         {renderChart()}
       </ResponsiveContainer>
     </div>
