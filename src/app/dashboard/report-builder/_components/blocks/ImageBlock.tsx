@@ -62,8 +62,8 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({ block, isDragging }) => 
           style={{
             objectFit: block.objectFit, // Sobrescreve se for necessário
           }}
-          onError={(e) => {
-          }}
+          // O bloco onError foi removido para evitar o erro 'e' is defined but never used.
+          // Para tratamento de erro de imagem em <Image />, é mais comum lidar com o src ou um fallback no componente pai.
         />
       )}
       {!block.imageUrl && (

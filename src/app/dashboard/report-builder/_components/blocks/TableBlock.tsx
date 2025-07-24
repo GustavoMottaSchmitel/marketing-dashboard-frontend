@@ -18,7 +18,9 @@ interface TableRowData {
   specialty: string;
   performanceChange: string; // Mantido como string para o mock, mas pode ser number se for sempre numérico
   alerts: number;
-  [key: string]: any; // Permite propriedades adicionais que não estão explicitamente definidas
+  // Usamos 'unknown' aqui para permitir propriedades adicionais que não estão explicitamente definidas
+  // Isso é mais seguro que 'any' e ainda permite flexibilidade.
+  [key: string]: unknown;
 }
 
 // Dados mockados para demonstração
@@ -31,10 +33,10 @@ const mockTableData: TableRowData[] = [
 ];
 
 export const TableBlock: React.FC<TableBlockProps> = ({ block, isDragging }) => {
-  // MUDANÇA CRUCIAL AQUI: Faz um cast seguro de block.tableData para TableRowData[]
+  // Faz um cast seguro de block.tableData para TableRowData[]
   // Isso informa ao TypeScript que, se block.tableData existir, ele deve ser tratado como TableRowData[]
   const data: TableRowData[] = (block.tableData && block.tableData.length > 0
-    ? (block.tableData as TableRowData[]) // Cast explícito aqui
+    ? (block.tableData as TableRowData[])
     : mockTableData);
 
   const defaultColumns: TableBlockType['columns'] = [
@@ -123,7 +125,6 @@ export const TableBlock: React.FC<TableBlockProps> = ({ block, isDragging }) => 
           )}
           <TableBody>
             {data.map((row, rowIndex) => {
-              // 'row' já é TableRowData[]
               const typedRow: TableRowData = row;
               return (
                 <TableRow
@@ -135,6 +136,7 @@ export const TableBlock: React.FC<TableBlockProps> = ({ block, isDragging }) => 
                   )}
                 >
                   {columns.map((col, colIndex) => {
+                    // Acessa o valor da célula de forma segura, pois typedRow é TableRowData
                     const cellValue = typedRow[col.accessor];
                     const isPerformanceChange = col.accessor === 'performanceChange';
                     const isAlerts = col.accessor === 'alerts';

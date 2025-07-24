@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react'; // Removido useMemo
+import React from 'react';
 import { ChartBlock as ChartBlockType, ChartType, CommonBlockRenderProps } from '@/app/types/report-builders';
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
@@ -40,11 +40,21 @@ interface ChartBlockProps {
   isDragging?: CommonBlockRenderProps['isDragging'];
 }
 
-// Definindo um tipo mais específico para os dados mockados dos gráficos
-type ChartDataEntry = Record<string, any>; // Tipo genérico para entradas de dados de gráfico
+// Definindo interfaces específicas para cada tipo de dado de gráfico
+interface LineChartData { date: string; clinic: string; value: number; }
+interface BarChartData { name: string; clinic: string; value: number; }
+interface PieChartData { name: string; clinic: string; value: number; }
+interface AreaChartData { date: string; clinic: string; value: number; }
+export interface RadarChartData { subject: string; clinic: string; A: number; fullMark: number; [key: string]: unknown; } // Adicionado index signature
+interface StackedBarChartData { name: string; clinic: string; whatsapp: number; form: number; dm: number; }
+interface DualLineChartData { date: string; clinic: string; leads: number; investment: number; }
+interface FunnelChartData { stage: string; clinic: string; value: number; }
+
+// União de todos os tipos de dados possíveis para uma entrada de gráfico
+type ChartSpecificData = LineChartData | BarChartData | PieChartData | AreaChartData | RadarChartData | StackedBarChartData | DualLineChartData | FunnelChartData;
 
 // Dados mockados para gráficos (mais complexos para simular filtros)
-const mockChartData: Record<ChartType, ChartDataEntry[]> = {
+const mockChartData: Record<ChartType, ChartSpecificData[]> = {
   LINE: [
     { date: '2023-01-01', clinic: 'clinic-a', value: 400 }, { date: '2023-01-08', clinic: 'clinic-a', value: 300 },
     { date: '2023-01-15', clinic: 'clinic-a', value: 500 }, { date: '2023-01-22', clinic: 'clinic-b', value: 450 },
@@ -93,7 +103,7 @@ const mockChartData: Record<ChartType, ChartDataEntry[]> = {
 
 
 export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
-  const data: ChartDataEntry[] = mockChartData[block.chartType as keyof typeof mockChartData] || [];
+  const data = mockChartData[block.chartType] || [];
 
   const defaultLineColor = block.lineColor || PRIMARY_ACCENT;
   const defaultBarColor = block.barColor || PRIMARY_ACCENT;
@@ -170,7 +180,7 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
               stroke="#2C2C3E"
               paddingAngle={3}
             >
-              {data.map((entry, index) => ( // Removido 'as any[]'
+              {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={defaultPieColors[index % defaultPieColors.length]} stroke={defaultPieColors[index % defaultPieColors.length]} strokeWidth={1} />
               ))}
             </Pie>
@@ -212,14 +222,23 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
           </AreaChart>
         );
       case ChartType.RADAR:
+        const radarData = data as RadarChartData[];
+        // MUDANÇA CRUCIAL AQUI: Garante que a chave de acesso é uma string e o valor é um número.
+        const radarDataKey = (typeof block.dataKey === 'string' ? block.dataKey : 'A') as keyof RadarChartData;
+        const maxRadarValue = Math.max(...radarData.map(d => {
+          const value = d[radarDataKey];
+          // Assegura que o valor é um número antes de passar para Math.max
+          return typeof value === 'number' ? value : 0; // Fallback para 0 se não for número
+        }));
+
         return (
-          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
+          <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
             <PolarGrid stroke="#404058" />
             <PolarAngleAxis dataKey={block.xAxisKey || 'subject'} stroke="#A0A0C0" tick={{ fill: '#a0aec0', fontSize: 12 }} />
-            <PolarRadiusAxis angle={90} domain={[0, Math.max(...data.map((d: ChartDataEntry) => d[block.dataKey as string || 'A'])) * 1.1]} stroke="#404058" tick={false} axisLine={false} /> {/* Corrigido d: any para d: ChartDataEntry */}
+            <PolarRadiusAxis angle={90} domain={[0, maxRadarValue * 1.1]} stroke="#404058" tick={false} axisLine={false} />
             <Radar
               name={Array.isArray(block.dataLabel) ? block.dataLabel[0] : block.dataLabel || 'Valor'}
-              dataKey={block.dataKey as string || 'A'}
+              dataKey={radarDataKey} // Usa a chave de dados garantida como string
               stroke={defaultLineColor}
               fill={defaultLineColor}
               fillOpacity={0.6}
@@ -286,7 +305,7 @@ export const ChartBlock: React.FC<ChartBlockProps> = ({ block }) => {
               itemStyle={{ color: '#a0aec0' }}
             />}
             <Bar dataKey={block.dataKey as string || 'value'} fill={defaultBarColor} barSize={40} radius={[0, 10, 10, 0]}>
-              {data.map((entry, index) => ( // Removido 'as any[]'
+              {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={defaultPieColors[index % defaultPieColors.length]} />
               ))}
             </Bar>
