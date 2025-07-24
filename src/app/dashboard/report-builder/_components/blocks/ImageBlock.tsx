@@ -1,0 +1,77 @@
+// src/app/dashboard/report-builder/_components/blocks/ImageBlock.tsx
+'use client';
+
+import React from 'react';
+import { ImageBlock as ImageBlockType, CommonBlockRenderProps } from '@/app/types/report-builders';
+import { cn } from '@/app/lib/utils';
+
+interface ImageBlockProps extends CommonBlockRenderProps {
+  block: ImageBlockType;
+}
+
+export const ImageBlock: React.FC<ImageBlockProps> = ({ block, isDragging }) => {
+  return (
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center p-6", // Padding aumentado
+        block.backgroundColor || 'bg-[#1A1A2A]', // Fundo padrão
+        block.textColor || 'text-[#E0E0F0]', // Cor do texto padrão (para título/descrição)
+        block.borderRadius || 'rounded-lg', // Borda padrão
+        block.boxShadow || 'shadow-md', // Sombra padrão
+        block.layout?.width || 'w-full', // Largura padrão
+        block.layout?.height || 'h-auto', // Altura padrão
+        block.layout?.padding || 'p-6', // Padding padrão do layout
+        block.layout?.marginTop,
+        block.layout?.marginBottom,
+        block.layout?.alignment === 'center' && 'mx-auto',
+        block.layout?.alignment === 'right' && 'ml-auto',
+        block.layout?.alignment === 'left' && 'mr-auto',
+        isDragging ? 'opacity-50 scale-98' : 'opacity-100 scale-100', // Efeito visual ao arrastar
+        "transition-all duration-200 ease-in-out" // Transição para efeitos
+      )}
+      style={{
+        backgroundColor: block.backgroundColor, // Permite sobrescrever com hex
+        color: block.textColor, // Permite sobrescrever com hex
+      }}
+    >
+      {block.title && (
+        <h3 className={cn(
+          "text-xl font-semibold mb-3 text-center", // Título centralizado e com margem
+          block.textColor || 'text-white' // Cor do título
+        )}>
+          {block.title}
+        </h3>
+      )}
+      <img
+        src={block.imageUrl}
+        alt={block.altText || 'Imagem do relatório'}
+        className={cn(
+          "max-w-full rounded-lg shadow-lg", // Sombra mais proeminente na imagem
+          block.layout?.width || 'w-full', // Usa a largura do layout do bloco
+          block.layout?.height || 'h-auto', // Usa a altura do layout do bloco
+          block.objectFit ? `object-${block.objectFit}` : 'object-contain',
+          "transition-transform duration-300 ease-out" // Transição para a imagem
+        )}
+        style={{
+          // Garante que a imagem preencha o container do bloco se a altura for definida
+          height: block.layout?.height === 'h-full' ? '100%' : block.layout?.height,
+          objectFit: block.objectFit, // Sobrescreve se for necessário
+        }}
+        onError={(e) => {
+          e.currentTarget.src = `https://placehold.co/600x300/404058/A0A0C0?text=Erro+ao+carregar+imagem`;
+          e.currentTarget.alt = "Erro ao carregar imagem";
+          // Opcional: Adicionar um estilo para indicar erro na imagem
+          e.currentTarget.className = cn(e.currentTarget.className, "border-2 border-red-500");
+        }}
+      />
+      {block.description && (
+        <p className={cn(
+          "text-sm text-center mt-3 leading-tight", // Descrição centralizada com margem
+          block.textColor ? `text-[${block.textColor}] opacity-80` : 'text-[#A0A0C0]'
+        )}>
+          {block.description}
+        </p>
+      )}
+    </div>
+  );
+};
