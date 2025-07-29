@@ -1,12 +1,13 @@
-'use client'; // <-- ADICIONADO AQUI
+'use client'; // <-- Mantido como Client Component
 
 import Link from 'next/link';
 import { Button } from './components/ui/custom-elements';
 import { SparklesIcon } from 'lucide-react'; // Importando um ícone para o logo
 
-export default function Home() { // Removido 'async' pois não é mais um Server Component
+export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gradient-to-br from-white via-gray-50 to-blue-50 text-gray-900 animate-fade-in">
+    // MUDANÇA AQUI: Novo gradiente de fundo mais suave e profissional
+    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gradient-to-br from-gray-50 via-blue-50 to-emerald-50 text-gray-900 animate-fade-in">
       {/* Animação de fade-in para a página inteira */}
       <style jsx>{`
         .animate-fade-in {
