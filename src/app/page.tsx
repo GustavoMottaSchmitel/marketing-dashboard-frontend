@@ -1,57 +1,98 @@
-'use client'; // Mantido como Client Component
+'use client';
 
-import { Suspense } from 'react';
-import { LoginForm } from '@/app/components/auth/LoginForm';
-import Image from 'next/image'; // Para a imagem de fundo otimizada
+import Link from 'next/link';
+import { Button } from './components/ui/custom-elements';
+import { SparklesIcon } from 'lucide-react'; 
 
-export default function LoginPage() {
+export default function Home() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-white via-gray-50 to-blue-50">
-      {/* Container Principal do Card de Login - Inspirado na imagem enviada */}
-      <div className="relative z-10 w-full max-w-4xl min-h-[500px] flex bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden animate-fade-in-scale">
-        {/* Animações CSS */}
-        <style jsx>{`
-          .animate-fade-in-scale {
-            animation: fadeInScale 0.8s ease-out forwards;
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-          }
-        `}</style>
+    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-100 via-purple-100 to-indigo-100 text-gray-900 animate-fade-in">
+     
+      {/* Animação de fade-in para a página inteira */}
 
-        {/* Coluna Esquerda: Imagem/Ilustração */}
-        <div className="relative flex-1 hidden md:flex items-center justify-center p-6 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
-          <Image
-            src="/assets/clinicmedic.jpg" // Caminho para a imagem que você enviou (coloque-a em public/assets/)
-            alt="Ilustração de Gestão de Dados Médicos"
-            layout="fill"
-            objectFit="contain" 
-            quality={90}
-            className="p-8" 
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 opacity-40"></div> {/* Overlay sutil */}
-        </div>
+      <style jsx>{`
+        .animate-fade-in {
+          animation: fadeIn 1s ease-out forwards;
+          opacity: 0;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-scale-up-hover {
+          transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .animate-scale-up-hover:hover {
+          transform: scale(1.02);
+          box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada */
+        }
+      `}</style>
 
-        {/* Coluna Direita: Formulário de Login */}
-        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-2">MyBimed</h1>
-            <p className="text-lg text-gray-600">
-              Acesse sua plataforma de gestão.
+      {/* Container Principal - Adicionada borda sutil */}
+
+      <div className="w-full max-w-lg mx-auto text-center bg-white p-8 rounded-2xl shadow-2xl border border-blue-200 animate-scale-up-hover"> {/* Borda mais visível */}
+        <div className="space-y-8">
+
+          {/* Logo MyBimed - Simples e Profissional */}
+
+          <div className="flex items-center justify-center mb-6">
+            <SparklesIcon className="h-12 w-12 text-indigo-700 mr-3" /> 
+            <h1 className="text-5xl font-extrabold tracking-tight text-gray-900">
+              MyBimed
+            </h1>
+          </div>
+
+          {/* Título e Descrição */}
+
+          <div className="space-y-4">
+            <p className="text-xl text-gray-700 leading-relaxed">
+              Sua plataforma inteligente para gestão e otimização de marketing em clínicas médicas.
+            </p>
+            <p className="text-md text-gray-500">
+              Transforme dados em resultados e impulsione o crescimento da sua clínica.
             </p>
           </div>
 
-          {/* Formulário de Login */}
-          <Suspense fallback={
-            <div className="text-center text-gray-500 py-8">Carregando formulário de login...</div>
-          }>
-            <LoginForm />
-          </Suspense>
+          {/* Botões Principais */}
+
+          <div className="flex flex-col space-y-4 mt-8">
+            <Button asChild className="w-full py-3 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-in-out animate-scale-up-hover">
+              <Link href="/auth/login">
+                Acessar o Sistema
+              </Link>
+            </Button>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-400">
+                  Ou
+                </span>
+              </div>
+            </div>
+
+            <Button variant="outline" asChild className="w-full py-3 text-lg font-semibold border-indigo-500 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ease-in-out animate-scale-up-hover">
+              <Link href="/privacy-policy.html">
+                Política de Privacidade
+              </Link>
+            </Button>
+
+            <Button variant="outline" asChild className="w-full py-3 text-lg font-semibold border-indigo-500 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ease-in-out animate-scale-up-hover">
+              <Link href="/terms-of-service.html">
+                Termos de Responsabilidade
+              </Link>
+            </Button>
+          </div>
         </div>
+
+        {/* Rodapé */}
+        
+        <footer className="mt-12 text-sm text-gray-500">
+          <p>© {new Date().getFullYear()} MyBimed. Todos os direitos reservados.</p>
+        </footer>
       </div>
-    </div>
+    </main>
   );
 }
