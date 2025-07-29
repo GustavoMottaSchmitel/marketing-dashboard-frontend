@@ -1,9 +1,6 @@
-// src/app/dashboard/layout.tsx
-
 import { redirect } from 'next/navigation';
-import Header from '../components/layout/Header';
-import Sidebar from '../components/layout/Sidebar';
 import { getServerSession, getCurrentUser } from '@/app/actions/auth';
+import { DashboardClientWrapper } from './_components/DashboardClientWrapper';
 
 export default async function DashboardLayout({
   children,
@@ -19,15 +16,11 @@ export default async function DashboardLayout({
   const user = await getCurrentUser();
   const userEmail = user?.email || null;
 
+  const initialIsEditMode = false; // Define um estado inicial para o modo de edição
+
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <div className="flex-1 flex flex-col ml-64">
-        <Header userEmail={userEmail} />
-        <main className="flex-1 p-6 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardClientWrapper userEmail={userEmail} isEditModeFromParent={initialIsEditMode}>
+      {children}
+    </DashboardClientWrapper>
   );
 }

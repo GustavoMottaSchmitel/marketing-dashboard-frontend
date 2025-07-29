@@ -75,6 +75,9 @@ export interface ClinicOverviewData {
   recentLeads: number;
   performanceChange: string; // e.g., "+5.2%"
   alerts: number;
+  // --- ADICIONADO: CPL e CPC para a comparação de clínicas ---
+  cpl: number; // Custo por Lead da clínica
+  cpc: number; // Custo por Clique da clínica
 }
 
 export interface LeadTypeDistributionData {
@@ -117,7 +120,7 @@ export interface DashboardDataDTO {
   originData: OriginData[];
   regionData: RegionData[];
   googleAnalyticsDataDTO: GoogleAnalyticsOverviewData;
-  clinicsOverview: ClinicOverviewData[];
+  clinicsOverview: ClinicOverviewData[]; // Esta é a interface que foi atualizada
   leadTypeDistribution: LeadTypeDistributionData[];
   roiHistory: ROIHistoryData[];
   instagramInsights: InstagramInsightData[];

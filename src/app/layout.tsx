@@ -1,4 +1,3 @@
-// src/app/layout.tsx
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -22,10 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className="dark"> 
-      <body className={`${inter.className} bg-gray-900 text-white`}>
+    <html lang="pt-BR">
+      <body className={`${inter.className} bg-white text-gray-900`}>
         {children}
-        <Toaster /> 
+        <Toaster />
       </body>
     </html>
   );
