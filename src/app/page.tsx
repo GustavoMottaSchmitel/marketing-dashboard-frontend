@@ -1,8 +1,10 @@
+'use client'; // <-- ADICIONADO AQUI
+
 import Link from 'next/link';
 import { Button } from './components/ui/custom-elements';
-import { SparklesIcon } from 'lucide-react'; 
+import { SparklesIcon } from 'lucide-react'; // Importando um ícone para o logo
 
-export default async function Home() {
+export default function Home() { // Removido 'async' pois não é mais um Server Component
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gradient-to-br from-white via-gray-50 to-blue-50 text-gray-900 animate-fade-in">
       {/* Animação de fade-in para a página inteira */}
