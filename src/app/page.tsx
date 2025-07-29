@@ -6,26 +6,18 @@ import { SparklesIcon } from 'lucide-react';
 
 export default function Home() {
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 bg-gray-950 text-white overflow-hidden">
-     
-      {/* Camada de fundo com gradiente radial para efeito de "brilho" central */}
-
+    <main className="relative flex min-h-screen flex-col items-center justify-center p-6 bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 text-white overflow-hidden">
       <div className="absolute inset-0 z-0" style={{
         background: 'radial-gradient(circle at center, rgba(60, 0, 100, 0.3) 0%, rgba(0, 0, 0, 0.7) 70%, rgba(0, 0, 0, 0.9) 100%)',
       }}></div>
-
-      {/* Padrão de pontos sutis para textura */}
-
       <div className="absolute inset-0 z-0 opacity-10" style={{
         backgroundImage: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 1px, transparent 1px)',
         backgroundSize: '30px 30px',
       }}></div>
 
-      {/* Estilos CSS personalizados para sombras e animações */}
-
       <style jsx>{`
         .shadow-4xl {
-          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4); /* Sombra ainda mais profunda */
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
         }
         .animate-fade-in-up {
           animation: fadeInUp 1s ease-out forwards;
@@ -40,33 +32,26 @@ export default function Home() {
           transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
         }
         .animate-pop-on-hover:hover {
-          transform: translateY(-8px) scale(1.02); /* Mais levantamento e zoom */
-          box-shadow: 0 35px 70px rgba(0, 0, 0, 0.35); /* Sombra ainda mais pronunciada no hover */
+          transform: translateY(-8px) scale(1.02);
+          box-shadow: 0 35px 70px rgba(0, 0, 0, 0.35);
         }
         .animate-pulse-subtle {
           animation: pulseSubtle 2s infinite ease-in-out;
         }
         @keyframes pulseSubtle {
           0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.08); opacity: 0.9; } /* Pulsação mais notável para o ícone */
+          50% { transform: scale(1.08); opacity: 0.9; }
         }
       `}</style>
 
-      {/* Container Principal do Conteúdo - Mais proeminente e com sombra dramática */}
-
       <div className="relative z-10 w-full max-w-2xl mx-auto text-center bg-white p-10 rounded-3xl shadow-4xl border border-indigo-300 animate-fade-in-up animate-pop-on-hover">
         <div className="space-y-8">
-
-          {/* Logo MyBimed - Ícone maior e animado */}
-
           <div className="flex items-center justify-center mb-6">
-            <SparklesIcon className="h-16 w-16 text-indigo-700 mr-4 animate-pulse-subtle" /> 
+            <SparklesIcon className="h-16 w-16 text-indigo-700 mr-4 animate-pulse-subtle" />
             <h1 className="text-6xl font-extrabold tracking-tight text-gray-900 leading-tight">
               MyBimed
             </h1>
           </div>
-
-          {/* Título e Descrição - Mais impactantes */}
 
           <div className="space-y-4">
             <p className="text-2xl text-gray-700 leading-relaxed font-semibold">
@@ -77,16 +62,12 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Botão Principal de Ação - Mais visível */}
-
           <div className="flex flex-col space-y-4 mt-10">
             <Button asChild className="w-full py-4 text-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out animate-pop-on-hover">
               <Link href="/auth/login">
                 Acessar o Sistema Agora
               </Link>
             </Button>
-
-            {/* Divisor "Informações Legais" */}
 
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
@@ -99,8 +80,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Links Legais - Com efeito de hover */}
-            
             <div className="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 justify-center">
               <Button variant="outline" asChild className="flex-1 py-3 text-lg font-semibold border-purple-500 text-purple-600 hover:bg-purple-50 hover:text-purple-700 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 ease-in-out animate-pop-on-hover">
                 <Link href="/privacy-policy.html">
@@ -117,7 +96,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Rodapé */}
         <footer className="mt-16 text-sm text-gray-500">
           <p>© {new Date().getFullYear()} MyBimed. Todos os direitos reservados.</p>
         </footer>
