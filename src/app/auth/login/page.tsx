@@ -1,22 +1,21 @@
-'use client'; 
-
+'use client';
 import { Suspense } from 'react';
 import { LoginForm } from '../../components/auth/LoginForm';
-import Image from 'next/image';
+import Image from 'next/image'; 
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-green-50 via-white to-green-100">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950">
      
       {/* Container Principal do Card de Login - Layout de Duas Colunas */}
 
-      <div className="relative z-10 w-full max-w-5xl min-h-[600px] flex bg-white rounded-2xl shadow-3xl border border-green-200 overflow-hidden animate-fade-in-scale">
+      <div className="relative z-10 w-full max-w-5xl min-h-[600px] flex bg-white rounded-2xl shadow-3xl border border-gray-700 overflow-hidden animate-fade-in-scale">
        
         {/* Animações CSS */}
 
         <style jsx>{`
           .shadow-3xl {
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); /* Sombra mais profunda */
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); /* Sombra mais profunda para o card */
           }
           .animate-fade-in-scale {
             animation: fadeInScale 0.8s ease-out forwards;
@@ -29,16 +28,19 @@ export default function LoginPage() {
           }
         `}</style>
 
-        <div className="relative flex-1 hidden md:flex items-center justify-center bg-gradient-to-br from-green-50 via-green-100 to-white">
+        <div className="relative flex-1 hidden md:flex items-center justify-center bg-gray-800">
           <Image
             src="/assets/clinicmedic.jpg" 
             alt="Ilustração de Gestão de Dados Médicos"
             layout="fill"
-            objectFit="cover" 
+            objectFit="cover"
             quality={90}
-            className="opacity-90" 
+            className="opacity-60" 
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-green-100 via-white to-green-50 opacity-20"></div>
+
+          {/* Overlay escuro para integrar a imagem ao fundo */}
+
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-blue-950 to-purple-950 opacity-50"></div>
         </div>
 
         {/* Coluna Direita: Formulário de Login */}
@@ -58,6 +60,7 @@ export default function LoginPage() {
           }>
             <LoginForm />
           </Suspense>
+
         </div>
       </div>
     </div>
