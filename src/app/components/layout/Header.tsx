@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Search, CalendarDays, Download, Bell, Settings, ChevronDown, ChevronUp, FileText, DownloadCloud, Printer, User, LogOut, EyeIcon, EditIcon, MenuIcon } from "lucide-react";
+import { Download, Bell, Settings, ChevronDown, ChevronUp, FileText, DownloadCloud, Printer, User, LogOut, EyeIcon, MenuIcon } from "lucide-react";
 import { logoutAction } from '@/app/actions/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -15,12 +15,10 @@ import { cn } from '@/app/lib/utils';
 
 interface HeaderProps {
   userEmail: string | null;
-  // isSidebarMinimized removido daqui, pois não é usado diretamente no Header
   onToggleSidebar: () => void;
   isViewMode: boolean;
   onToggleViewMode: () => void;
-  isEditMode: boolean;
-  onToggleEditMode: () => void;
+  // isEditMode e onToggleEditMode foram removidos daqui, pois o botão de edição agora está na página do dashboard
 }
 
 interface NextRedirectError extends Error {
@@ -31,12 +29,9 @@ const NEXT_REDIRECT_ERROR_CODE = 'NEXT_REDIRECT';
 
 const Header: React.FC<HeaderProps> = ({
   userEmail,
-  // isSidebarMinimized removido da desestruturação
   onToggleSidebar,
   isViewMode,
   onToggleViewMode,
-  isEditMode,
-  onToggleEditMode,
 }) => {
   const router = useRouter();
   const [showExportDropdown, setShowExportDropdown] = useState(false);
@@ -134,32 +129,18 @@ const Header: React.FC<HeaderProps> = ({
     )}>
       <div className="flex items-center justify-between px-6 py-4 w-full h-full">
         <div className="flex items-center">
+          {/* Botão de alternar Sidebar (visível apenas fora do modo de visualização) */}
           {!isViewMode && (
             <Button
               variant="ghost"
               size="icon"
               onClick={onToggleSidebar}
-              className="mr-4 text-gray-600 hover:bg-gray-100"
+              className="mr-4 text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
               aria-label="Toggle Sidebar"
             >
               <MenuIcon className="h-6 w-6" />
             </Button>
           )}
-          <h1 className={cn(
-            "text-2xl font-semibold text-gray-900",
-            isViewMode && "text-xl"
-          )}>
-            Dashboard Principal
-          </h1>
-        </div>
-
-        <div className="relative w-full max-w-2xl mx-6">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Buscar clínica, campanha..."
-            className="w-full pl-11 pr-4 py-1.5 h-9 rounded-xl border border-gray-300 bg-gray-50 text-sm text-gray-800 placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
-          />
         </div>
 
         <div className="flex items-center space-x-4 ml-auto">
@@ -170,27 +151,12 @@ const Header: React.FC<HeaderProps> = ({
             className={cn(
               "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out",
               isViewMode
-                ? "bg-indigo-600 text-white hover:bg-indigo-700"
-                : "border-indigo-500 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+                ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md"
+                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-800 shadow-sm"
             )}
           >
             <EyeIcon className="h-5 w-5 mr-2" />
             {isViewMode ? 'Sair do Modo Visualização' : 'MODO VISUALIZAÇÃO'}
-          </Button>
-
-          {/* Botão EDIT MODE */}
-          <Button
-            variant={isEditMode ? "default" : "outline"}
-            onClick={onToggleEditMode}
-            className={cn(
-              "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out",
-              isEditMode
-                ? "bg-green-600 text-white hover:bg-green-700"
-                : "border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700"
-            )}
-          >
-            <EditIcon className="h-5 w-5 mr-2" />
-            {isEditMode ? 'Sair do Modo Edição' : 'EDIT MODE'}
           </Button>
 
           {/* Export Dropdown */}
@@ -221,17 +187,11 @@ const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Calendar Button */}
-          <Button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 text-sm text-gray-700 hover:bg-gray-100 transition shadow-md">
-            <CalendarDays size={18} />
-            Últimos 7 dias
-          </Button>
-
           {/* Notifications Bell Button and Dropdown */}
           <div className="relative" ref={notificationsDropdownRef}>
             <Button
               onClick={handleNotificationClick}
-              className="relative p-2 text-yellow-500 hover:bg-gray-100 rounded-full transition shadow-md"
+              className="relative p-2 text-yellow-500 bg-white hover:bg-gray-50 rounded-full transition-colors shadow-sm"
               aria-label="Notificações e Alertas"
             >
               <Bell size={20} />
@@ -253,7 +213,7 @@ const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Settings Button */}
-          <Button className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition shadow-md">
+          <Button className="p-2 text-gray-700 bg-white hover:bg-gray-50 rounded-full transition-colors shadow-sm">
             <Settings size={20} />
           </Button>
 
@@ -261,7 +221,7 @@ const Header: React.FC<HeaderProps> = ({
           <div className="relative" ref={userDropdownRef}>
             <Button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
-              className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition cursor-pointer shadow-md"
+              className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-gray-50 transition-colors cursor-pointer shadow-sm"
               aria-label="Perfil do usuário e sair"
             >
               <span className="text-sm font-medium text-gray-800 hidden sm:block">
