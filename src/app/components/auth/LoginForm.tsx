@@ -1,4 +1,3 @@
-// src/app/components/auth/LoginForm.tsx
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -6,10 +5,7 @@ import React, { useState } from 'react';
 import { Button, Input, Label } from '@/app/components/ui/custom-elements';
 import { toast } from 'sonner';
 import { loginAction } from '@/app/actions/auth';
-import Link from 'next/link';
 
-// Interface para o erro de redirecionamento do Next.js
-// Isso permite verificar a propriedade 'digest' de forma tipada.
 interface NextRedirectError extends Error {
   digest?: string;
 }
@@ -39,13 +35,10 @@ export function LoginForm() {
       }
 
     } catch (error: unknown) {
-      // CORREÇÃO: Verificação de tipo mais robusta para NextRedirectError
       if (error instanceof Error && (error as NextRedirectError).digest?.includes(NEXT_REDIRECT_ERROR_CODE)) {
-        // Redirecionamento Next.js detectado, relança o erro para ser tratado pelo Next.js
         throw error;
       }
       
-      // Se não for um redirecionamento, trata o erro
       console.error('Erro no login:', error);
       if (error instanceof Error) {
         toast.error(error.message || 'Erro ao fazer login. Verifique suas credenciais.');
@@ -70,6 +63,7 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="seuemail@exemplo.com"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
         />
       </div>
       <div className="space-y-2">
@@ -83,16 +77,11 @@ export function LoginForm() {
           onChange={(e) => setPassword(e.target.value)}
           required
           placeholder="••••••••"
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
         />
       </div>
-      <div className="flex items-center justify-between">
-        <div className="text-sm">
-          <Link href="/forgot-password" className="font-medium text-[#8A2BE2] hover:text-[#6A5ACD]">
-            Esqueceu a senha?
-          </Link>
-        </div>
-      </div>
-      <Button type="submit" className="w-full" disabled={loading} variant="primary">
+      {/* Removido o div com os links de "Esqueceu a senha?" e "Registrar agora" */}
+      <Button type="submit" className="w-full py-3 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 ease-in-out" disabled={loading}>
         {loading ? 'Entrando...' : 'Entrar'}
       </Button>
     </form>
