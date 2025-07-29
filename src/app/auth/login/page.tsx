@@ -1,17 +1,17 @@
-'use client';
+'use client'; 
 
 import { Suspense } from 'react';
 import { LoginForm } from '../../components/auth/LoginForm';
-import Image from 'next/image'; 
+import Image from 'next/image';
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-gray-50 to-indigo-50">
-      
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-green-50 via-white to-green-100">
+     
       {/* Container Principal do Card de Login - Layout de Duas Colunas */}
 
-      <div className="relative z-10 w-full max-w-5xl min-h-[600px] flex bg-white rounded-2xl shadow-3xl border border-blue-200 overflow-hidden animate-fade-in-scale">
-        
+      <div className="relative z-10 w-full max-w-5xl min-h-[600px] flex bg-white rounded-2xl shadow-3xl border border-green-200 overflow-hidden animate-fade-in-scale">
+       
         {/* Animações CSS */}
 
         <style jsx>{`
@@ -29,20 +29,16 @@ export default function LoginPage() {
           }
         `}</style>
 
-        {/* Coluna Esquerda: Imagem/Ilustração Grande */}
-
-        <div className="relative flex-1 hidden md:flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="relative flex-1 hidden md:flex items-center justify-center bg-gradient-to-br from-green-50 via-green-100 to-white">
           <Image
-            src="/assets/clinicmedic.jpg" 
+            src="/assets/image_4904e3.jpg" 
             alt="Ilustração de Gestão de Dados Médicos"
             layout="fill"
             objectFit="cover" 
             quality={90}
             className="opacity-90" 
           />
-          {/* Overlay sutil para garantir legibilidade do texto se houver */}
-
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 opacity-20"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-green-100 via-white to-green-50 opacity-20"></div>
         </div>
 
         {/* Coluna Direita: Formulário de Login */}
