@@ -33,7 +33,7 @@ export default function LoginPage() {
 
         <div className="relative flex-1 hidden md:flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
           <Image
-            src="/assets/image_4904e3.jpg" 
+            src="/assets/clinicmedic.jpg" 
             alt="Ilustração de Gestão de Dados Médicos"
             layout="fill"
             objectFit="cover" 
