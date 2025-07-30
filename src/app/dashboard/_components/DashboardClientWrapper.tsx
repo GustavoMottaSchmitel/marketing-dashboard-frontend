@@ -21,53 +21,53 @@ export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ 
     setIsSidebarMinimized(!isSidebarMinimized);
   };
 
-  // Determina a largura da sidebar dinamicamente para grid-template-columns
-  const sidebarWidth = isViewMode ? '0px' : (isSidebarMinimized ? 'theme(width.16)' : 'theme(width.60)');
+  const gridTemplateColumns = isViewMode
+    ? '0px 1fr' 
+    : isSidebarMinimized
+      ? 'theme(width.16) 1fr'
+      : 'theme(width.60) 1fr';
 
   return (
     <div
-      className="grid min-h-screen w-full" // Adicionado w-full para garantir que o grid ocupe toda a largura
+      className="grid min-h-screen w-full overflow-hidden"
       style={{
-        // Define as colunas: uma para a sidebar (largura dinâmica) e outra para o resto do conteúdo (1fr)
-        gridTemplateColumns: `${sidebarWidth} 1fr`,
-        // Define as linhas: uma para o header (altura h-20) e outra para o conteúdo principal (1fr)
+        gridTemplateColumns: gridTemplateColumns,
         gridTemplateRows: 'theme(height.20) 1fr',
       }}
     >
-      {/* Sidebar - Posicionada na primeira coluna e estendendo-se por ambas as linhas */}
-      {/* A visibilidade é controlada pelo 'grid-template-columns' e 'hidden' para acessibilidade */}
-      <aside className={cn(
-        "col-start-1 row-start-1 row-span-2 bg-white border-r border-gray-200 shadow-lg z-40 transition-all duration-300 ease-in-out",
-        isViewMode ? "hidden" : "block" // Oculta completamente em modo de visualização
-      )}>
-        <Sidebar isMinimized={isSidebarMinimized} isViewMode={isViewMode} />
-      </aside>
+      {!isViewMode && (
+        <aside className={cn(
+          "col-start-1 row-start-1 row-span-2 flex flex-col bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out",
+          isSidebarMinimized ? "w-16" : "w-60"
+        )}>
+          <Sidebar isMinimized={isSidebarMinimized} isViewMode={isViewMode} />
+        </aside>
+      )}
 
-      {/* Header - Posicionado na segunda coluna, primeira linha */}
-      <header className={cn(
-        "col-start-2 row-start-1 flex-shrink-0 bg-white border-b border-gray-200 shadow-sm relative z-30 h-20 flex items-center px-6 w-full", // Adicionado classes do Header aqui para garantir consistência
-        isViewMode ? "hidden" : "block" // Oculta completamente se estiver no modo de visualização
-      )}>
-        <Header
-          userEmail={userEmail}
-          onToggleSidebar={handleToggleSidebar}
-          isViewMode={isViewMode}
-          onToggleViewMode={onToggleViewMode}
-          isEditMode={isEditMode}
-          onToggleEditMode={onToggleEditMode}
-        />
-      </header>
+      {!isViewMode && (
+        <header className="col-start-2 row-start-1 flex-shrink-0 bg-white border-b border-gray-200 shadow-sm relative z-30 h-20 flex items-center px-6 w-full">
+          <Header
+            userEmail={userEmail}
+            onToggleSidebar={handleToggleSidebar}
+            isViewMode={isViewMode}
+            onToggleViewMode={onToggleViewMode}
+            isEditMode={isEditMode}
+            onToggleEditMode={onToggleEditMode}
+          />
+        </header>
+      )}
 
-      {/* Conteúdo Principal - Posicionado na segunda coluna, segunda linha, e é a única área rolável */}
+      {/* Conteúdo Principal - Posicionado na segunda coluna, segunda linha.
+          É a ÚNICA área que deve ter overflow-y-auto para rolagem.
+          Quando em modo de visualização, ele ocupa a primeira linha também (onde estaria o header). */}
       <main className={cn(
-        "col-start-2 row-start-2 p-8 overflow-y-auto", // Apenas o conteúdo principal rola verticalmente
-        "bg-gray-100", // Garante que o fundo do main seja cinza
-        isViewMode ? "p-4 pt-16" : "" // Ajusta o padding superior se o header estiver oculto no modo de visualização
+        "col-start-2 p-8 overflow-y-auto bg-gray-100", // Fundo cinza para o conteúdo principal
+        isViewMode ? "row-start-1 row-span-2 p-4 pt-16" : "row-start-2" // Ajusta o posicionamento e padding em modo de visualização
       )}>
-        {children} {/* O children (DashboardPage) sempre é renderizado aqui */}
+        {children} {/* O conteúdo do dashboard (gráficos, etc.) é sempre renderizado aqui */}
       </main>
 
-      {/* Botão "Sair do Modo Visualização" - Posição fixa, fora do fluxo do grid para o modo de visualização */}
+      {/* Botão "Sair do Modo Visualização" - Posição fixa, fora do fluxo do grid. */}
       {isViewMode && (
         <div className="fixed top-4 right-4 z-50">
           <Button
