@@ -126,7 +126,7 @@ const Header: React.FC<HeaderProps> = ({
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   return (
-    <header className="bg-white border-b border-gray-200 shadow-sm relative z-30 h-20 flex items-center px-6 w-full"> {/* Removido py-4 */}
+    <header className="bg-white border-b border-gray-200 shadow-sm relative z-30 h-20 flex items-center px-6 w-full">
       <div className="flex items-center">
         {/* Botão de alternar Sidebar */}
         <Button

@@ -29,7 +29,7 @@ const NEXT_REDIRECT_ERROR_CODE = 'NEXT_REDIRECT';
 
 interface SidebarProps {
   isMinimized: boolean;
-  isViewMode: boolean; 
+  isViewMode: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
@@ -141,23 +141,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
 
   return (
     <aside className={cn(
-      "fixed left-0 top-0 h-full bg-white border-r border-gray-200 flex flex-col shadow-lg z-40 transition-all duration-300 ease-in-out",
-      isMinimized ? "w-16" : "w-60" 
+      // Removido 'fixed', 'left-0', 'top-0', 'h-full'
+      "flex flex-col bg-white border-r border-gray-200 shadow-lg z-40 transition-all duration-300 ease-in-out",
+      isMinimized ? "w-16" : "w-60"
     )}>
       {/* Logo e Branding */}
       <div className={cn(
-        "flex items-center justify-center h-20 border-b border-gray-200", 
+        "flex items-center justify-center h-20 border-b border-gray-200",
         isMinimized ? "px-2" : "px-6"
       )}>
         {isMinimized ? (
-          <MenuIcon className="h-8 w-8 text-indigo-600" /> 
+          <MenuIcon className="h-8 w-8 text-indigo-600" />
         ) : (
-          <h2 className="text-2xl font-bold text-gray-900">MyBimed</h2> 
+          <h2 className="text-2xl font-bold text-gray-900">MyBimed</h2>
         )}
       </div>
 
       {/* Navegação Principal */}
-
       <nav className="flex-1 overflow-y-auto py-4">
         {menuItems.map((section, index) => (
           <div key={index} className="mb-4">
@@ -193,7 +193,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
       </nav>
 
       {/* Footer da Sidebar (Sair e Copyright) */}
-      
       <div className={cn(
         "p-4 border-t border-gray-200 text-center bg-white",
         isMinimized ? "px-2" : "px-4"
