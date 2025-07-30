@@ -7,11 +7,15 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area,
 } from 'recharts';
-import { FiTrendingUp, FiTrendingDown, FiAlertTriangle, FiInfo, FiCheckCircle, FiXCircle, FiDollarSign, FiUsers, FiPercent, FiZap, FiEye, FiMousePointer, FiActivity, FiEdit, FiSave, FiX } from 'react-icons/fi';
+// Ícones que ainda são usados diretamente neste arquivo (para alertas e botões de edição)
+import { FiAlertTriangle, FiInfo, FiCheckCircle, FiXCircle, FiEdit, FiSave, FiX } from 'react-icons/fi';
 
 import { cn } from '@/app/lib/utils';
 import { getDashboardData as fetchRealDashboardData, DashboardDataDTO, EvolutionData, ClinicOverviewData as BackendClinicOverviewData, CampaignData, CreativeData, OriginData, LeadTypeDistributionData, ROIHistoryData, InstagramInsightData, InstagramPostInteraction, ConversionFunnelData } from '../lib/dashboard';
 import { getClinicas, MOCKED_CLINIC_ID_NUMERIC, MOCKED_CLINIC_NAME, Clinica } from '../lib/clinicas';
+
+// Importe o novo componente de seção
+import { MetricCardsSection } from './_sections/MetricCardsSection';
 
 // --- DADOS MOCKADOS PARA TESTE DO EDITOR ---
 const generateMockDashboardData = (): DashboardDataDTO => ({
@@ -135,42 +139,6 @@ const GRADIENT_BAR_SECONDARY_END = '#EF4444';
 
 const GRADIENT_AREA_START = '#A78BFA';
 const GRADIENT_AREA_END = '#8B5CF6';
-
-interface MetricCardProps {
-  title: string;
-  value: number | string;
-  unit?: string;
-  percentageChange?: number | null;
-  isCurrency?: boolean;
-  accentColor?: string;
-  icon?: React.ElementType;
-}
-
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, unit = '', percentageChange = null, isCurrency = false, accentColor = 'transparent', icon: IconComponent }) => {
-  const formattedValue = typeof value === 'number'
-    ? value.toLocaleString('pt-BR', { minimumFractionDigits: isCurrency ? 2 : 0, maximumFractionDigits: isCurrency ? 2 : 0 })
-    : value;
-
-  return (
-    <Card className="p-5 flex flex-col items-start justify-between rounded-lg shadow-md relative overflow-hidden transform hover:scale-[1.02] transition-transform duration-300 ease-out bg-white border border-gray-200">
-      <div className="flex items-center justify-between w-full mb-2">
-        <p className="text-sm text-gray-500 font-medium uppercase tracking-wider">{title}</p>
-        {IconComponent && <IconComponent size={20} className="text-opacity-70" style={{ color: accentColor }} />}
-      </div>
-      <h3 className="text-3xl font-extrabold text-gray-900 mt-1">
-        {isCurrency ? `R$ ${formattedValue}` : formattedValue}
-        {unit && <span className="text-lg font-normal ml-1">{unit}</span>}
-      </h3>
-      {percentageChange !== null && (
-        <p className={`text-sm mt-2 flex items-center gap-1 ${percentageChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-          {percentageChange >= 0 ? <FiTrendingUp size={16} /> : <FiTrendingDown size={16} />}
-          {Math.abs(percentageChange).toFixed(1)}%
-        </p>
-      )}
-      <div className="absolute bottom-0 left-0 w-full h-1.5" style={{ backgroundColor: accentColor }}></div>
-    </Card>
-  );
-};
 
 type EditableField =
   | { dataIndex: number; key: keyof CampaignData; dataType: 'campaignsData'; label: string; type?: string; }
@@ -573,39 +541,29 @@ export default function DashboardPage() {
     return [{ value: '', label: 'Todas as Campanhas' }, ...options];
   }, [currentDashboardDataForDisplay?.campaignsData]);
 
-  // creativeOptions depende de currentDashboardDataForDisplay
   const creativeOptions = useMemo(() => {
     const options = (currentDashboardDataForDisplay?.creativesData || []).map(c => ({ value: String(c.id), label: c.name }));
     return [{ value: '', label: 'Todos os Criativos' }, ...options];
   }, [currentDashboardDataForDisplay?.creativesData]);
 
-  // filteredCampaignsData depende de currentDashboardDataForDisplay, selectedCampaign
   const filteredCampaignsData = useMemo(() => {
     return (currentDashboardDataForDisplay?.campaignsData || []).filter(campaign =>
       selectedCampaign ? String(campaign.id) === selectedCampaign : true
     );
   }, [currentDashboardDataForDisplay?.campaignsData, selectedCampaign]);
-  // filteredCreativesData depende de currentDashboardDataForDisplay, selectedCreative
   const filteredCreativesData = useMemo(() => {
     return (currentDashboardDataForDisplay?.creativesData || []).filter(creative =>
       selectedCreative ? String(creative.id) === selectedCreative : true
     );
   }, [currentDashboardDataForDisplay?.creativesData, selectedCreative]);
 
-  // originDataFiltered depende de currentDashboardDataForDisplay
   const originDataFiltered = useMemo(() => currentDashboardDataForDisplay?.originData || [], [currentDashboardDataForDisplay?.originData]);
-  // leadTypeDistributionData depende de currentDashboardDataForDisplay
   const leadTypeDistributionData = useMemo(() => currentDashboardDataForDisplay?.leadTypeDistribution || [], [currentDashboardDataForDisplay?.leadTypeDistribution]);
-  // roiHistoryData depende de currentDashboardDataForDisplay
   const roiHistoryData = useMemo(() => currentDashboardDataForDisplay?.roiHistory || [], [currentDashboardDataForDisplay?.roiHistory]);
-  // instagramInsightsData depende de currentDashboardDataForDisplay
   const instagramInsightsData = useMemo(() => currentDashboardDataForDisplay?.instagramInsights || [], [currentDashboardDataForDisplay?.instagramInsights]);
-  // instagramPostInteractionsData depende de currentDashboardDataForDisplay
   const instagramPostInteractionsData = useMemo(() => currentDashboardDataForDisplay?.instagramPostInteractions || [], [currentDashboardDataForDisplay?.instagramPostInteractions]);
-  // conversionFunnelData depende de currentDashboardDataForDisplay
   const conversionFunnelData = useMemo(() => currentDashboardDataForDisplay?.conversionFunnel || [], [currentDashboardDataForDisplay?.conversionFunnel]);
 
-  // overviewMetricsMapped depende de currentDashboardDataForDisplay, salesEvolutionFiltered, leadsEvolutionFiltered, originDataFiltered
   const overviewMetricsMapped = useMemo(() => {
     if (!currentDashboardDataForDisplay) return null;
 
@@ -637,7 +595,6 @@ export default function DashboardPage() {
     };
   }, [currentDashboardDataForDisplay, leadsEvolutionFiltered, salesEvolutionFiltered, originDataFiltered]);
 
-  // clinicsComparisonData depende de currentDashboardDataForDisplay
   const clinicsComparisonData = useMemo(() => {
     if (!currentDashboardDataForDisplay) return [];
     return (currentDashboardDataForDisplay.clinicsOverview || []).map((clinic: BackendClinicOverviewData) => ({
@@ -651,7 +608,6 @@ export default function DashboardPage() {
     })).filter(item => !isNaN(item.cpl) && isFinite(item.cpl));
   }, [currentDashboardDataForDisplay]);
 
-  // clinicsOverviewForTable depende de currentDashboardDataForDisplay
   const clinicsOverviewForTable = useMemo(() => currentDashboardDataForDisplay?.clinicsOverview || [], [currentDashboardDataForDisplay]);
 
 
@@ -669,7 +625,7 @@ export default function DashboardPage() {
         }
       })
       .catch(err => {
-        console.error("Erro ao carregar clínicas:", err);
+          console.error("Erro ao carregar clínicas:", err);
       })
       .finally(() => {
         setLoadingClinicas(false);
@@ -693,7 +649,7 @@ export default function DashboardPage() {
 
   if (loading || loadingClinicas) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-neutral-50 text-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-500 mx-auto mb-4"></div>
           <p className="text-xl font-semibold">Carregando Dashboard...</p>
@@ -705,7 +661,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-red-500 p-8">
+      <div className="flex items-center justify-center min-h-screen bg-neutral-50 text-red-500 p-8">
         <Card className="p-8 border border-red-400 rounded-lg shadow-md text-center bg-white">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Erro ao Carregar Dashboard</h2>
           <p className="mb-4 text-gray-700">{error}</p>
@@ -722,7 +678,7 @@ export default function DashboardPage() {
 
   if (!currentDashboardDataForDisplay || !clinicIdFromUrl) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-neutral-50 text-gray-900">
         <div className="text-center">
           <p className="text-xl font-semibold">Nenhum dado disponível para a clínica selecionada.</p>
           <p className="text-sm text-gray-600">Selecione uma clínica no menu superior ou verifique se os dados foram ingeridos pelo backend.</p>
@@ -733,7 +689,7 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="space-y-10 p-8 bg-gray-50 min-h-screen text-gray-900">
+    <div className="space-y-10 p-8 bg-neutral-50 min-h-screen text-gray-900">
       {isViewMode && (
         <div className="fixed top-4 right-4 z-50">
           <Button
@@ -839,21 +795,8 @@ export default function DashboardPage() {
 
       <section className="space-y-10">
 
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">Métricas Principais</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-            <MetricCard title="Investimento Total" value={overviewMetricsMapped?.investmentTotal || 0} isCurrency percentageChange={-2.5} accentColor={ERROR_COLOR} icon={FiDollarSign} />
-            <MetricCard title="Total de Leads" value={overviewMetricsMapped?.totalLeads || 0} percentageChange={8.0} accentColor={PRIMARY_ACCENT} icon={FiUsers} />
-            <MetricCard title="Faturamento Total" value={overviewMetricsMapped?.revenueTotal || 0} isCurrency percentageChange={12.0} accentColor={SUCCESS_COLOR} icon={FiDollarSign} />
-            <MetricCard title="Taxa de Conversão" value={overviewMetricsMapped?.conversionRateTotal || 0} unit="%" percentageChange={-0.2} accentColor={SECONDARY_ACCENT} icon={FiPercent} />
-            <MetricCard title="ROI" value={overviewMetricsMapped?.roi || 0} percentageChange={-0.4} accentColor={WARNING_COLOR} icon={FiZap} />
-            <MetricCard title="Impressões Totais" value={overviewMetricsMapped?.impressionsTotal || 0} percentageChange={5.0} accentColor={INFO_COLOR} icon={FiEye} />
-            <MetricCard title="Cliques Totais" value={overviewMetricsMapped?.conversionsTotal || 0} percentageChange={10.3} accentColor={PRIMARY_ACCENT} icon={FiMousePointer} />
-            <MetricCard title="CTR Médio" value={overviewMetricsMapped?.ctr || 0} unit="%" percentageChange={1.2} accentColor={SUCCESS_COLOR} icon={FiActivity} />
-            <MetricCard title="CPL Médio" value={overviewMetricsMapped?.cpl || 0} isCurrency percentageChange={-1.5} accentColor={ERROR_COLOR} icon={FiDollarSign} />
-            <MetricCard title="CPC Médio" value={overviewMetricsMapped?.cpc || 0} isCurrency percentageChange={-0.5} accentColor={WARNING_COLOR} icon={FiDollarSign} />
-          </div>
-        </div>
+        {/* Use o novo componente MetricCardsSection aqui */}
+        <MetricCardsSection overviewMetricsMapped={overviewMetricsMapped} />
 
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-800">Gráficos de Barras</h2>
