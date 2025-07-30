@@ -21,33 +21,21 @@ export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ 
     setIsSidebarMinimized(!isSidebarMinimized);
   };
 
-  // Define a largura da coluna da sidebar para o grid.
-  // Em modo de visualização, a largura é 0px para colapsar visualmente.
-  const sidebarColumnWidth = isViewMode ? '0px' : (isSidebarMinimized ? 'theme(width.16)' : 'theme(width.60)');
-
   return (
-    <div
-      className="grid h-screen w-full overflow-hidden" // O contêiner principal ocupa 100% da altura e esconde o overflow
-      style={{
-        gridTemplateColumns: `${sidebarColumnWidth} 1fr`, // Coluna da sidebar (largura dinâmica) e coluna de conteúdo (resto)
-        gridTemplateRows: 'theme(height.20) 1fr', // Linha do header (80px) e linha do conteúdo principal (resto)
-      }}
-    >
-      {/* Sidebar - Sempre montada, mas sua largura e opacidade são controladas para o modo de visualização */}
+    <div className="grid h-screen w-full overflow-hidden">
+      {/* Sidebar - Controla a largura e visibilidade com max-w e overflow-hidden para transição suave */}
       <aside className={cn(
         "col-start-1 row-start-1 row-span-2 flex flex-col bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out",
-        isSidebarMinimized ? "w-16" : "w-60",
-        // Em modo de visualização, colapsa a largura para 0, torna invisível e não interativa
-        isViewMode ? "w-0 opacity-0 pointer-events-none" : "opacity-100"
+        isViewMode ? "max-w-0 opacity-0 pointer-events-none" : (isSidebarMinimized ? "max-w-16" : "max-w-60"), // Usa max-w para transição de largura
+        "overflow-hidden" // Garante que o conteúdo seja cortado ao colapsar
       )}>
         <Sidebar isMinimized={isSidebarMinimized} isViewMode={isViewMode} />
       </aside>
 
-      {/* Header - Sempre montado, sua opacidade é controlada para o modo de visualização */}
+      {/* Header - Controla a altura e visibilidade com h-0 para transição suave */}
       <header className={cn(
-        "col-start-2 row-start-1 flex-shrink-0 bg-white border-b border-gray-200 shadow-sm relative z-30 h-20 flex items-center px-6 w-full transition-opacity duration-300",
-        // Em modo de visualização, torna invisível e não interativo
-        isViewMode ? "opacity-0 pointer-events-none" : "opacity-100"
+        "col-start-2 row-start-1 flex-shrink-0 bg-white border-b border-gray-200 shadow-sm relative z-30 flex items-center px-6 w-full transition-all duration-300 ease-in-out",
+        isViewMode ? "h-0 opacity-0 pointer-events-none" : "h-20 opacity-100" // Controla altura e opacidade
       )}>
         <Header
           userEmail={userEmail}
@@ -59,13 +47,12 @@ export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ 
         />
       </header>
 
-      {/* Conteúdo Principal - Esta é a ÚNICA parte que deve ter rolagem vertical */}
+      {/* Conteúdo Principal - A única área que deve ter rolagem vertical */}
       <main className={cn(
-        "col-start-2 p-8 overflow-y-auto bg-gray-100", // Aplica overflow-y-auto aqui
-        // Em modo de visualização, o main ocupa ambas as linhas (header e conteúdo)
+        "col-start-2 p-8 overflow-y-auto bg-gray-100 transition-all duration-300 ease-in-out", // Adicionado transition-all
         isViewMode ? "row-start-1 row-span-2 p-4 pt-16" : "row-start-2"
       )}>
-        {children} {/* O conteúdo do dashboard (gráficos, etc.) é sempre renderizado aqui */}
+        {children}
       </main>
 
       {/* Botão "Sair do Modo Visualização" - Posição fixa, fora do fluxo do grid */}
