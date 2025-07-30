@@ -1,24 +1,111 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback, useRef, ChangeEvent } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Select, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Card, Input } from '@/app/components/ui/custom-elements';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area,
 } from 'recharts';
-import { FiFilter, FiTrendingUp, FiTrendingDown, FiAlertTriangle, FiInfo, FiCheckCircle, FiSearch, FiXCircle, FiDollarSign, FiUsers, FiPercent, FiZap, FiEye, FiMousePointer, FiActivity, FiEdit, FiSave } from 'react-icons/fi';
+import { FiTrendingUp, FiTrendingDown, FiAlertTriangle, FiInfo, FiCheckCircle, FiXCircle, FiDollarSign, FiUsers, FiPercent, FiZap, FiEye, FiMousePointer, FiActivity, FiEdit, FiSave, FiX } from 'react-icons/fi';
 
-import { cn, debounce } from '@/app/lib/utils';
+import { cn } from '@/app/lib/utils';
 import { getDashboardData as fetchRealDashboardData, DashboardDataDTO, EvolutionData, ClinicOverviewData as BackendClinicOverviewData, CampaignData, CreativeData, OriginData, LeadTypeDistributionData, ROIHistoryData, InstagramInsightData, InstagramPostInteraction, ConversionFunnelData } from '../lib/dashboard';
-import { getClinicas, PaginatedClinicasResponse } from '../lib/clinicas';
-import { AdvancedFilterModal } from './_components/AdvancedFilterModal';
+import { getClinicas, MOCKED_CLINIC_ID_NUMERIC, MOCKED_CLINIC_NAME, Clinica } from '../lib/clinicas';
 
-const mockClinicas = [
-  { value: '1', label: 'Clínica Alpha (Mock)' },
-  { value: '2', label: 'Clínica Beta (Mock)' },
-  { value: '3', label: 'Clínica Gama (Mock)' },
-];
+// --- DADOS MOCKADOS PARA TESTE DO EDITOR ---
+const generateMockDashboardData = (): DashboardDataDTO => ({
+  overviewMetrics: {
+    meta_totalInvestment: 15000,
+    google_totalInvestment: 8000,
+    meta_totalImpressions: 1200000,
+    google_totalImpressions: 800000,
+    google_totalClicks: 50000,
+  },
+  googleAnalyticsDataDTO: {
+    sessions: 75000,
+    bounceRate: 0.35,
+    totalUsers: 100000,
+    newUsers: 25000,
+  },
+  campaignsData: [
+    { id: 1, name: 'Campanha Primavera', leads: 2500, cpl: 6.0, roi: 2.5, status: 'Ativa', investment: 10000, bestCreative: 'Criativo A' },
+    { id: 2, name: 'Campanha Verão', leads: 3200, cpl: 4.5, roi: 3.1, status: 'Ativa', investment: 12000, bestCreative: 'Criativo B' },
+    { id: 3, name: 'Campanha Outono', leads: 1800, cpl: 7.2, roi: 1.8, status: 'Inativa', investment: 8000, bestCreative: 'Criativo C' },
+    { id: 4, name: 'Campanha Inverno', leads: 2000, cpl: 5.8, roi: 2.0, status: 'Ativa', investment: 9000, bestCreative: 'Criativo D' },
+  ],
+  creativesData: [
+    { id: 101, name: 'Banner Sorriso', clicks: 15000, leads: 800, conversionRate: 5.3, ctr: 1.2, views: 100000, cpl: 18.75 },
+    { id: 102, name: 'Vídeo Clareamento', clicks: 22000, leads: 1200, conversionRate: 5.5, ctr: 1.5, views: 150000, cpl: 18.33 },
+    { id: 103, name: 'Post Implante', clicks: 8000, leads: 400, conversionRate: 5.0, ctr: 0.8, views: 50000, cpl: 20.00 },
+  ],
+  leadsEvolution: [
+    { date: '2024-01-01', value: 100 },
+    { date: '2024-01-08', value: 120 },
+    { date: '2024-01-15', value: 150 },
+    { date: '2024-01-22', value: 130 },
+    { date: '2024-01-29', value: 160 },
+    { date: '2024-02-05', value: 180 },
+    { date: '2024-02-12', value: 200 },
+  ],
+  salesEvolution: [
+    { date: '2024-01-01', value: 5000 },
+    { date: '2024-01-08', value: 6000 },
+    { date: '2024-01-15', value: 7500 },
+    { date: '2024-01-22', value: 6800 },
+    { date: '2024-01-29', value: 8000 },
+    { date: '2024-02-05', value: 9000 },
+    { date: '2024-02-12', value: 10000 },
+  ],
+  originData: [
+    { name: 'Google Ads', value: 4000 },
+    { name: 'Meta Ads', value: 3500 },
+    { name: 'Orgânico', value: 1500 },
+    { name: 'Indicação', value: 1000 },
+  ],
+  leadTypeDistribution: [
+    { type: 'Hot Leads', leads: 3000 },
+    { type: 'Warm Leads', leads: 4000 },
+    { type: 'Cold Leads', leads: 2000 },
+  ],
+  roiHistory: [
+    { date: '2024-01-01', roi: 1.5, estimatedRoi: 1.7 },
+    { date: '2024-01-15', roi: 1.8, estimatedRoi: 1.9 },
+    { date: '2024-01-29', roi: 2.0, estimatedRoi: 2.1 },
+    { date: '2024-02-12', roi: 2.2, estimatedRoi: 2.3 },
+  ],
+  instagramInsights: [
+    { metric: 'Seguidores', value: 15000 },
+    { metric: 'Alcance', value: 50000 },
+    { metric: 'Impressões', value: 80000 },
+    { metric: 'Engajamento', value: 5000 },
+  ],
+  instagramPostInteractions: [
+    { date: '2024-03-01', likes: 200, comments: 15, saves: 5, shares: 2 },
+    { date: '2024-03-02', likes: 250, comments: 20, saves: 8, shares: 3 },
+    { date: '2024-03-03', likes: 180, comments: 10, saves: 3, shares: 1 },
+    { date: '2024-03-04', likes: 300, comments: 25, saves: 10, shares: 4 },
+  ],
+  conversionFunnel: [
+    { stage: 'Visitantes', value: 10000 },
+    { stage: 'Leads', value: 3000 },
+    { stage: 'Qualificados', value: 1500 },
+    { stage: 'Oportunidades', value: 500 },
+    { stage: 'Vendas', value: 200 },
+  ],
+  recentAlerts: [
+    { id: 1, message: 'CPL da Campanha X aumentou 15%.', type: 'warning', date: '2024-07-25T10:00:00Z', read: false },
+    { id: 2, message: 'Nova campanha "Sorriso Perfeito" lançada com sucesso.', type: 'success', date: '2024-07-24T14:30:00Z', read: true },
+    { id: 3, message: 'Queda de 20% nas sessões do Google Analytics.', type: 'error', date: '2024-07-23T09:15:00Z', read: false },
+  ],
+  clinicsOverview: [
+    { id: MOCKED_CLINIC_ID_NUMERIC, name: MOCKED_CLINIC_NAME, specialties: 'Mocked, Editor', activeCampaigns: 99, recentLeads: 999, performanceChange: '99.9', alerts: 99, cpl: 9.99, cpc: 0.99 },
+    { id: 1, name: 'Clínica Central', specialties: 'Geral, Ortodontia', activeCampaigns: 5, recentLeads: 120, performanceChange: '5.2', alerts: 1, cpl: 5.50, cpc: 1.20 },
+    { id: 2, name: 'Clínica Zona Sul', specialties: 'Estética, Implantes', activeCampaigns: 3, recentLeads: 80, performanceChange: '-2.1', alerts: 0, cpl: 6.10, cpc: 1.50 },
+  ],
+  regionData: [],
+});
+// --- FIM DADOS MOCKADOS ---
 
 const PRIMARY_ACCENT = '#4F46E5';
 const SECONDARY_ACCENT = '#10B981';
@@ -138,62 +225,36 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, children, className = '', 
   </Card>
 );
 
-// Removida a interface DashboardPageProps, pois isEditMode será um estado interno
 export default function DashboardPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // 1. **TODAS AS DECLARAÇÕES DE useState NO TOPO**
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false);
+
   const clinicIdFromUrl = searchParams.get('clinicId');
-
-  const [isEditMode, setIsEditMode] = useState<boolean>(false); // Estado interno para o modo de edição
-
-  const [clinicasOptions, setClinicasOptions] = useState<{ value: string; label: string }[]>([]);
   const [selectedClinicaFilter, setSelectedClinicaFilter] = useState<string | null>(clinicIdFromUrl);
-  const [clinicSearchTerm, setClinicSearchTerm] = useState<string>('');
-  const [debouncedClinicSearchTerm, setDebouncedClinicSearchTerm] = useState<string>('');
-  const [showClinicSearchDropdown, setShowClinicSearchDropdown] = useState(false);
-  const clinicSearchRef = useRef<HTMLDivElement>(null);
+  const [startDate, setStartDate] = useState<string>(searchParams.get('startDate') || '');
+  const [endDate, setEndDate] = useState<string>(searchParams.get('endDate') || '');
+  const [selectedCampaign, setSelectedCampaign] = useState(searchParams.get('campaignId') || '');
+  const [selectedCreative, setSelectedCreative] = useState(searchParams.get('creativeId') || '');
 
-  useEffect(() => {
-    const handler = debounce(() => {
-      setDebouncedClinicSearchTerm(clinicSearchTerm);
-    }, 300);
+  const [clinicas, setClinicas] = useState<Clinica[]>([]);
+  const [loadingClinicas, setLoadingClinicas] = useState(true);
 
-    handler();
-
-    return () => {
-      handler.cancel();
-    };
-  }, [clinicSearchTerm]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (clinicSearchRef.current && !clinicSearchRef.current.contains(event.target as Node)) {
-        setShowClinicSearchDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [selectedCampaign, setSelectedCampaign] = useState('');
-  const [selectedCreative, setSelectedCreative] = useState('');
-
-  const [isAdvancedFilterModalOpen, setIsAdvancedFilterModalOpen] = useState(false);
-
+  // Variáveis de estado que estavam causando o erro de "used before declaration"
   const [dashboardData, setDashboardData] = useState<DashboardDataDTO | null>(null);
   const [editableDashboardData, setEditableDashboardData] = useState<DashboardDataDTO | null>(null);
 
-  useEffect(() => {
-    if (isEditMode && dashboardData) {
-      setEditableDashboardData(JSON.parse(JSON.stringify(dashboardData)));
-    } else if (!isEditMode) {
-      setEditableDashboardData(null);
-    }
-  }, [isEditMode, dashboardData]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+
+  // 2. **TODAS AS DECLARAÇÕES DE useCallback APÓS OS useState (e com dependências declaradas)**
+  const toggleViewMode = useCallback(() => {
+    setIsViewMode(prev => !prev);
+  }, []);
 
   const getFilteredEvolutionData = useCallback((data: EvolutionData[], start: string, end: string) => {
     if (!data || data.length === 0) return [];
@@ -208,175 +269,22 @@ export default function DashboardPage() {
       if (endDateObj && itemDate > endDateObj) return false;
       return true;
     });
-  }, []);
+  }, []); // Sem dependências externas além dos parâmetros
 
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadDashboardData = useCallback(async () => {
-    if (!selectedClinicaFilter) {
-      setLoading(false);
-      setDashboardData(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchRealDashboardData(
-        selectedClinicaFilter,
-        startDate,
-        endDate,
-        selectedCampaign,
-        selectedCreative
-      );
-      setDashboardData(data);
-    } catch (err: unknown) {
-      console.error("Erro ao buscar dados do dashboard:", err);
-      if (err instanceof Error) {
-        setError(err.message || "Ocorreu um erro ao carregar os dados do dashboard.");
-      } else {
-        setError("Ocorreu um erro desconhecido ao carregar os dados do dashboard.");
+  // toggleEditMode depende de isEditMode, dashboardData e setEditableDashboardData
+  const toggleEditMode = useCallback(() => {
+    setIsEditMode(prev => {
+      // Se estava em modo de edição e está saindo, reseta editableDashboardData
+      if (prev) {
+        setEditableDashboardData(null);
+      } else if (dashboardData) { // Se está entrando em modo de edição e dashboardData existe
+        setEditableDashboardData(JSON.parse(JSON.stringify(dashboardData)));
       }
-      setDashboardData(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedClinicaFilter, startDate, endDate, selectedCampaign, selectedCreative]);
+      return !prev;
+    });
+  }, [dashboardData]); // isEditMode não precisa ser uma dependência aqui diretamente, pois o `prev` já lida com o estado anterior.
 
-  useEffect(() => {
-    const loadClinicas = async () => {
-      try {
-        const response: PaginatedClinicasResponse = await getClinicas(0, 20, debouncedClinicSearchTerm);
-        const options = response.content.map(clinica => ({
-          value: String(clinica.id),
-          label: clinica.name,
-        }));
-        setClinicasOptions([{ value: '', label: 'Todas as Clínicas' }, ...options]);
-
-        if (!clinicIdFromUrl && options.length > 0) {
-          setSelectedClinicaFilter(options[0].value);
-          router.replace(`/dashboard?clinicId=${options[0].value}`);
-        } else if (clinicIdFromUrl && !options.some(opt => opt.value === clinicIdFromUrl)) {
-          setSelectedClinicaFilter('');
-          router.replace('/dashboard');
-        } else if (clinicIdFromUrl) {
-          setSelectedClinicaFilter(clinicIdFromUrl);
-        }
-      } catch (err: unknown) {
-        console.error("Erro ao carregar lista de clínicas:", err);
-        setClinicasOptions([{ value: '', label: 'Todas as Clínicas' }, ...mockClinicas]);
-      }
-    };
-    loadClinicas();
-  }, [clinicIdFromUrl, router, debouncedClinicSearchTerm]);
-
-  useEffect(() => {
-    loadDashboardData();
-  }, [loadDashboardData]);
-
-  const handleClinicaChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const newClinicId = e.target.value;
-    setSelectedClinicaFilter(newClinicId);
-    if (newClinicId) {
-      router.replace(`/dashboard?clinicId=${newClinicId}`);
-    } else {
-      router.replace('/dashboard');
-    }
-  };
-
-  const handleSelectClinicFromSearch = (clinicaId: string, clinicaName: string) => {
-    setSelectedClinicaFilter(clinicaId);
-    setClinicSearchTerm(clinicaName);
-    setShowClinicSearchDropdown(false);
-    router.replace(`/dashboard?clinicId=${clinicaId}`);
-  };
-
-  const handleApplyAdvancedFilters = (start: string, end: string, campaign: string, creative: string) => {
-    setStartDate(start);
-    setEndDate(end);
-    setSelectedCampaign(campaign);
-    setSelectedCreative(creative);
-  };
-
-  const currentDashboardData = isEditMode && editableDashboardData ? editableDashboardData : dashboardData;
-
-  const campaignOptions = useMemo(() => {
-    if (!currentDashboardData) return [];
-    return [{ value: '', label: 'Todas as Campanhas' }, ...currentDashboardData.campaignsData.map(c => ({ value: String(c.id), label: c.name }))];
-  }, [currentDashboardData]);
-
-  const creativeOptions = useMemo(() => {
-    if (!currentDashboardData) return [];
-    return [{ value: '', label: 'Todos os Criativos' }, ...currentDashboardData.creativesData.map(c => ({ value: String(c.id), label: c.name }))];
-  }, [currentDashboardData]);
-
-  const leadsEvolutionFiltered = useMemo(() => getFilteredEvolutionData(currentDashboardData?.leadsEvolution || [], startDate, endDate), [currentDashboardData?.leadsEvolution, startDate, endDate, getFilteredEvolutionData]);
-  const salesEvolutionFiltered = useMemo(() => getFilteredEvolutionData(currentDashboardData?.salesEvolution || [], startDate, endDate), [currentDashboardData?.salesEvolution, startDate, endDate, getFilteredEvolutionData]);
-  const filteredCampaignsData = useMemo(() => {
-    return (currentDashboardData?.campaignsData || []).filter(campaign =>
-      selectedCampaign ? String(campaign.id) === selectedCampaign : true
-    );
-  }, [currentDashboardData?.campaignsData, selectedCampaign]);
-  const filteredCreativesData = useMemo(() => {
-    return (currentDashboardData?.creativesData || []).filter(creative =>
-      selectedCreative ? String(creative.id) === selectedCreative : true
-    );
-  }, [currentDashboardData?.creativesData, selectedCreative]);
-
-  const originDataFiltered = useMemo(() => currentDashboardData?.originData || [], [currentDashboardData?.originData]);
-  const leadTypeDistributionData = useMemo(() => currentDashboardData?.leadTypeDistribution || [], [currentDashboardData?.leadTypeDistribution]);
-  const roiHistoryData = useMemo(() => currentDashboardData?.roiHistory || [], [currentDashboardData?.roiHistory]);
-  const instagramInsightsData = useMemo(() => currentDashboardData?.instagramInsights || [], [currentDashboardData?.instagramInsights]);
-  const instagramPostInteractionsData = useMemo(() => currentDashboardData?.instagramPostInteractions || [], [currentDashboardData?.instagramPostInteractions]);
-  const conversionFunnelData = useMemo(() => currentDashboardData?.conversionFunnel || [], [currentDashboardData?.conversionFunnel]);
-
-  const overviewMetricsMapped = useMemo(() => {
-    if (!currentDashboardData) return null;
-
-    const totalInvestment = (currentDashboardData.overviewMetrics.meta_totalInvestment || 0) + (currentDashboardData.overviewMetrics.google_totalInvestment || 0);
-    const totalSalesValue = salesEvolutionFiltered.reduce((sum, item) => sum + item.value, 0);
-    const totalLeadsValue = leadsEvolutionFiltered.reduce((sum, item) => sum + item.value, 0);
-
-    const totalViews = (currentDashboardData.overviewMetrics.meta_totalImpressions || 0) + (currentDashboardData.overviewMetrics.google_totalImpressions || 0);
-    const totalClicks = currentDashboardData.overviewMetrics.google_totalClicks || 0;
-    const avgCTR = totalViews > 0 ? (totalClicks / totalViews) * 100 : 0;
-
-    return {
-      investmentTotal: totalInvestment,
-      conversionsTotal: currentDashboardData.googleAnalyticsDataDTO?.sessions || 0,
-      conversionRateTotal: currentDashboardData.googleAnalyticsDataDTO?.bounceRate ? (100 - currentDashboardData.googleAnalyticsDataDTO.bounceRate * 100) : 0,
-      revenueTotal: totalSalesValue,
-      roi: totalInvestment > 0 ? (totalSalesValue / totalInvestment) : 0,
-      impressionsTotal: totalViews,
-      totalLeads: totalLeadsValue,
-      leadsByChannel: originDataFiltered,
-      totalAppointments: 0,
-      totalSales: totalSalesValue,
-      bestCampaign: currentDashboardData.campaignsData.length > 0 ? currentDashboardData.campaignsData.reduce((prev, current) => (prev.leads > current.leads ? prev : current)).name : 'N/A',
-      cpl: totalLeadsValue > 0 ? totalInvestment / totalLeadsValue : 0,
-      cpc: (currentDashboardData.overviewMetrics.google_totalClicks || 0) > 0 ? currentDashboardData.overviewMetrics.google_totalInvestment / currentDashboardData.overviewMetrics.google_totalClicks : 0,
-      ctr: avgCTR,
-      cpv: 0,
-      estimatedRevenue: totalSalesValue * 1.1,
-    };
-  }, [currentDashboardData, leadsEvolutionFiltered, salesEvolutionFiltered, originDataFiltered]);
-
-  const clinicsComparisonData = useMemo(() => {
-    if (!currentDashboardData) return [];
-    return (currentDashboardData.clinicsOverview || []).map((clinic: BackendClinicOverviewData) => ({
-      subject: clinic.name,
-      cpl: clinic.cpl / 10,
-      cpc: clinic.cpc / 5,
-      conversionRate: parseFloat(clinic.performanceChange),
-      roi: (clinic.recentLeads / (clinic.cpl * clinic.recentLeads)) * 100,
-      leads: clinic.recentLeads / 100,
-      fullMark: 100
-    })).filter(item => !isNaN(item.cpl) && isFinite(item.cpl));
-  }, [currentDashboardData]);
-
-  const clinicsOverviewForTable = useMemo(() => currentDashboardData?.clinicsOverview || [], [currentDashboardData]);
-
+  // handleEditableDataChange depende de editableDashboardData
   const handleEditableDataChange = useCallback(
     (
       field: EditableField,
@@ -535,7 +443,255 @@ export default function DashboardPage() {
     [editableDashboardData]
   );
 
-  if (loading) {
+  const handleClinicChange = useCallback((value: string) => {
+    setSelectedClinicaFilter(value);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    newSearchParams.set('clinicId', value);
+    router.replace(`/dashboard?${newSearchParams.toString()}`);
+  }, [router, searchParams]);
+
+  const handleStartDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setStartDate(value);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    if (value) {
+      newSearchParams.set('startDate', value);
+    } else {
+      newSearchParams.delete('startDate');
+    }
+    router.replace(`/dashboard?${newSearchParams.toString()}`);
+  }, [router, searchParams]);
+
+  const handleEndDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEndDate(value);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    if (value) {
+      newSearchParams.set('endDate', value);
+    } else {
+      newSearchParams.delete('endDate');
+    }
+    router.replace(`/dashboard?${newSearchParams.toString()}`);
+  }, [router, searchParams]);
+
+  const handleCampaignChange = useCallback((value: string) => {
+    setSelectedCampaign(value);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    if (value) {
+      newSearchParams.set('campaignId', value);
+    } else {
+      newSearchParams.delete('campaignId');
+    }
+    router.replace(`/dashboard?${newSearchParams.toString()}`);
+  }, [router, searchParams]);
+
+  const handleCreativeChange = useCallback((value: string) => {
+    setSelectedCreative(value);
+    const newSearchParams = new URLSearchParams(searchParams.toString());
+    if (value) {
+      newSearchParams.set('creativeId', value);
+    } else {
+      newSearchParams.delete('creativeId');
+    }
+    router.replace(`/dashboard?${newSearchParams.toString()}`);
+  }, [router, searchParams]);
+
+  // loadDashboardData depende de searchParams, setLoading, setError, setDashboardData
+  const loadDashboardData = useCallback(() => {
+    const currentClinicId = searchParams.get('clinicId');
+    const currentStartDate = searchParams.get('startDate') || '';
+    const currentEndDate = searchParams.get('endDate') || '';
+    const currentCampaign = searchParams.get('campaignId') || '';
+    const currentCreative = searchParams.get('creativeId') || '';
+
+    if (!currentClinicId) {
+      setLoading(false);
+      setDashboardData(null);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    if (parseInt(currentClinicId) === MOCKED_CLINIC_ID_NUMERIC) {
+      setDashboardData(generateMockDashboardData());
+      setLoading(false);
+    } else {
+      fetchRealDashboardData(
+        currentClinicId,
+        currentStartDate,
+        currentEndDate,
+        currentCampaign,
+        currentCreative
+      )
+        .then(data => {
+          setDashboardData(data);
+        })
+        .catch(err => {
+          console.error("Erro ao buscar dados do dashboard:", err);
+          if (err instanceof Error) {
+            setError(err.message || "Ocorreu um erro ao carregar os dados do dashboard.");
+          } else {
+            setError("Ocorreu um erro desconhecido ao carregar os dados do dashboard.");
+          }
+          setDashboardData(null);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [searchParams, setLoading, setError, setDashboardData]);
+
+  // handleSaveChanges depende de editableDashboardData e setDashboardData
+  const handleSaveChanges = useCallback(() => {
+    if (editableDashboardData) {
+      setDashboardData(editableDashboardData);
+      console.log("Dados salvos (mocked):", editableDashboardData);
+    }
+  }, [editableDashboardData, setDashboardData]);
+
+  // handleDiscardChanges depende de setEditableDashboardData
+  const handleDiscardChanges = useCallback(() => {
+    setEditableDashboardData(null);
+  }, [setEditableDashboardData]);
+
+
+  // 3. **TODAS AS DECLARAÇÕES DE useMemo APÓS useState e useCallback (se dependências existirem)**
+  // currentDashboardDataForDisplay depende de isEditMode, editableDashboardData, dashboardData
+  const currentDashboardDataForDisplay = useMemo(() => {
+    return isEditMode && editableDashboardData ? editableDashboardData : dashboardData;
+  }, [isEditMode, editableDashboardData, dashboardData]);
+
+  // leadsEvolutionFiltered depende de currentDashboardDataForDisplay, startDate, endDate, getFilteredEvolutionData
+  const leadsEvolutionFiltered = useMemo(() => getFilteredEvolutionData(currentDashboardDataForDisplay?.leadsEvolution || [], startDate, endDate), [currentDashboardDataForDisplay?.leadsEvolution, startDate, endDate, getFilteredEvolutionData]);
+  // salesEvolutionFiltered depende de currentDashboardDataForDisplay, startDate, endDate, getFilteredEvolutionData
+  const salesEvolutionFiltered = useMemo(() => getFilteredEvolutionData(currentDashboardDataForDisplay?.salesEvolution || [], startDate, endDate), [currentDashboardDataForDisplay?.salesEvolution, startDate, endDate, getFilteredEvolutionData]);
+
+  // campaignOptions depende de currentDashboardDataForDisplay
+  const campaignOptions = useMemo(() => {
+    const options = (currentDashboardDataForDisplay?.campaignsData || []).map(c => ({ value: String(c.id), label: c.name }));
+    return [{ value: '', label: 'Todas as Campanhas' }, ...options];
+  }, [currentDashboardDataForDisplay?.campaignsData]);
+
+  // creativeOptions depende de currentDashboardDataForDisplay
+  const creativeOptions = useMemo(() => {
+    const options = (currentDashboardDataForDisplay?.creativesData || []).map(c => ({ value: String(c.id), label: c.name }));
+    return [{ value: '', label: 'Todos os Criativos' }, ...options];
+  }, [currentDashboardDataForDisplay?.creativesData]);
+
+  // filteredCampaignsData depende de currentDashboardDataForDisplay, selectedCampaign
+  const filteredCampaignsData = useMemo(() => {
+    return (currentDashboardDataForDisplay?.campaignsData || []).filter(campaign =>
+      selectedCampaign ? String(campaign.id) === selectedCampaign : true
+    );
+  }, [currentDashboardDataForDisplay?.campaignsData, selectedCampaign]);
+  // filteredCreativesData depende de currentDashboardDataForDisplay, selectedCreative
+  const filteredCreativesData = useMemo(() => {
+    return (currentDashboardDataForDisplay?.creativesData || []).filter(creative =>
+      selectedCreative ? String(creative.id) === selectedCreative : true
+    );
+  }, [currentDashboardDataForDisplay?.creativesData, selectedCreative]);
+
+  // originDataFiltered depende de currentDashboardDataForDisplay
+  const originDataFiltered = useMemo(() => currentDashboardDataForDisplay?.originData || [], [currentDashboardDataForDisplay?.originData]);
+  // leadTypeDistributionData depende de currentDashboardDataForDisplay
+  const leadTypeDistributionData = useMemo(() => currentDashboardDataForDisplay?.leadTypeDistribution || [], [currentDashboardDataForDisplay?.leadTypeDistribution]);
+  // roiHistoryData depende de currentDashboardDataForDisplay
+  const roiHistoryData = useMemo(() => currentDashboardDataForDisplay?.roiHistory || [], [currentDashboardDataForDisplay?.roiHistory]);
+  // instagramInsightsData depende de currentDashboardDataForDisplay
+  const instagramInsightsData = useMemo(() => currentDashboardDataForDisplay?.instagramInsights || [], [currentDashboardDataForDisplay?.instagramInsights]);
+  // instagramPostInteractionsData depende de currentDashboardDataForDisplay
+  const instagramPostInteractionsData = useMemo(() => currentDashboardDataForDisplay?.instagramPostInteractions || [], [currentDashboardDataForDisplay?.instagramPostInteractions]);
+  // conversionFunnelData depende de currentDashboardDataForDisplay
+  const conversionFunnelData = useMemo(() => currentDashboardDataForDisplay?.conversionFunnel || [], [currentDashboardDataForDisplay?.conversionFunnel]);
+
+  // overviewMetricsMapped depende de currentDashboardDataForDisplay, salesEvolutionFiltered, leadsEvolutionFiltered, originDataFiltered
+  const overviewMetricsMapped = useMemo(() => {
+    if (!currentDashboardDataForDisplay) return null;
+
+    const totalInvestment = (currentDashboardDataForDisplay.overviewMetrics.meta_totalInvestment || 0) + (currentDashboardDataForDisplay.overviewMetrics.google_totalInvestment || 0);
+    const totalSalesValue = salesEvolutionFiltered.reduce((sum, item) => sum + item.value, 0);
+    const totalLeadsValue = leadsEvolutionFiltered.reduce((sum, item) => sum + item.value, 0);
+
+    const totalViews = (currentDashboardDataForDisplay.overviewMetrics.meta_totalImpressions || 0) + (currentDashboardDataForDisplay.overviewMetrics.google_totalImpressions || 0);
+    const totalClicks = currentDashboardDataForDisplay.overviewMetrics.google_totalClicks || 0;
+    const avgCTR = totalViews > 0 ? (totalClicks / totalViews) * 100 : 0;
+
+    return {
+      investmentTotal: totalInvestment,
+      conversionsTotal: currentDashboardDataForDisplay.googleAnalyticsDataDTO?.sessions || 0,
+      conversionRateTotal: currentDashboardDataForDisplay.googleAnalyticsDataDTO?.bounceRate ? (100 - currentDashboardDataForDisplay.googleAnalyticsDataDTO.bounceRate * 100) : 0,
+      revenueTotal: totalSalesValue,
+      roi: totalInvestment > 0 ? (totalSalesValue / totalInvestment) : 0,
+      impressionsTotal: totalViews,
+      totalLeads: totalLeadsValue,
+      leadsByChannel: originDataFiltered,
+      totalAppointments: 0,
+      totalSales: totalSalesValue,
+      bestCampaign: currentDashboardDataForDisplay.campaignsData.length > 0 ? currentDashboardDataForDisplay.campaignsData.reduce((prev, current) => (prev.leads > current.leads ? prev : current)).name : 'N/A',
+      cpl: totalLeadsValue > 0 ? totalInvestment / totalLeadsValue : 0,
+      cpc: (currentDashboardDataForDisplay.overviewMetrics.google_totalClicks || 0) > 0 ? currentDashboardDataForDisplay.overviewMetrics.google_totalInvestment / currentDashboardDataForDisplay.overviewMetrics.google_totalClicks : 0,
+      ctr: avgCTR,
+      cpv: 0,
+      estimatedRevenue: totalSalesValue * 1.1,
+    };
+  }, [currentDashboardDataForDisplay, leadsEvolutionFiltered, salesEvolutionFiltered, originDataFiltered]);
+
+  // clinicsComparisonData depende de currentDashboardDataForDisplay
+  const clinicsComparisonData = useMemo(() => {
+    if (!currentDashboardDataForDisplay) return [];
+    return (currentDashboardDataForDisplay.clinicsOverview || []).map((clinic: BackendClinicOverviewData) => ({
+      subject: clinic.name,
+      cpl: clinic.cpl / 10, // Normalizando para o radar chart
+      cpc: clinic.cpc / 5, // Normalizando para o radar chart
+      conversionRate: parseFloat(clinic.performanceChange),
+      roi: (clinic.recentLeads / (clinic.cpl * clinic.recentLeads)) * 100, // Exemplo de cálculo de ROI
+      leads: clinic.recentLeads / 100, // Normalizando para o radar chart
+      fullMark: 100
+    })).filter(item => !isNaN(item.cpl) && isFinite(item.cpl));
+  }, [currentDashboardDataForDisplay]);
+
+  // clinicsOverviewForTable depende de currentDashboardDataForDisplay
+  const clinicsOverviewForTable = useMemo(() => currentDashboardDataForDisplay?.clinicsOverview || [], [currentDashboardDataForDisplay]);
+
+
+  // 4. **TODAS AS DECLARAÇÕES DE useEffect POR ÚLTIMO**
+  // Efeito para carregar a lista de clínicas
+  useEffect(() => {
+    setLoadingClinicas(true);
+    getClinicas(0, 100)
+      .then(response => {
+        setClinicas(response.content);
+        if (!clinicIdFromUrl && response.content.length > 0) {
+          const initialClinicId = response.content.find(c => c.id === MOCKED_CLINIC_ID_NUMERIC)?.id.toString() || response.content[0].id.toString();
+          setSelectedClinicaFilter(initialClinicId);
+          router.replace(`/dashboard?clinicId=${initialClinicId}`);
+        }
+      })
+      .catch(err => {
+        console.error("Erro ao carregar clínicas:", err);
+      })
+      .finally(() => {
+        setLoadingClinicas(false);
+      });
+  }, [router, searchParams, clinicIdFromUrl]);
+
+  // Efeito para sincronizar editableDashboardData com dashboardData ao mudar o modo de edição
+  useEffect(() => {
+    if (isEditMode && dashboardData) {
+      setEditableDashboardData(JSON.parse(JSON.stringify(dashboardData)));
+    } else if (!isEditMode) {
+      setEditableDashboardData(null);
+    }
+  }, [isEditMode, dashboardData]);
+
+  // Recarrega os dados do dashboard sempre que os searchParams mudam
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
+
+
+  if (loading || loadingClinicas) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-900">
         <div className="text-center">
@@ -564,99 +720,122 @@ export default function DashboardPage() {
     );
   }
 
-  if (!currentDashboardData || !selectedClinicaFilter) {
+  if (!currentDashboardDataForDisplay || !clinicIdFromUrl) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-900">
         <div className="text-center">
           <p className="text-xl font-semibold">Nenhum dado disponível para a clínica selecionada.</p>
-          <p className="text-sm text-gray-600">Verifique se o ID da clínica está correto e se os dados foram ingeridos pelo backend.</p>
-          {clinicasOptions.length > 0 && (
-            <p className="mt-4 text-sm text-gray-600">
-              Selecione uma clínica:
-              <Select
-                options={clinicasOptions}
-                value={selectedClinicaFilter || ''}
-                onChange={handleClinicaChange}
-                className="mt-2 mx-auto bg-white border border-gray-300 text-gray-900"
-              />
-            </p>
-          )}
+          <p className="text-sm text-gray-600">Selecione uma clínica no menu superior ou verifique se os dados foram ingeridos pelo backend.</p>
         </div>
       </div>
     );
   }
 
+
   return (
     <div className="space-y-10 p-8 bg-gray-50 min-h-screen text-gray-900">
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pb-6 border-b border-gray-200">
-        <div>
-          <h1 className="text-4xl font-extrabold text-gray-900">Dashboard de Marketing</h1>
-          <p className="text-gray-600 mt-2 text-lg">Visão Geral de Performance da Empresa</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-
-          <div className="relative w-full md:w-48" ref={clinicSearchRef}>
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Pesquisar Clínica"
-              className="pl-10 bg-white border-gray-300 text-gray-900 placeholder:text-gray-500 py-2 px-3 rounded-lg text-sm font-medium shadow-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
-              value={clinicSearchTerm}
-              onChange={(e) => {
-                setClinicSearchTerm(e.target.value);
-                setShowClinicSearchDropdown(true);
-              }}
-              onFocus={() => setShowClinicSearchDropdown(true)}
-            />
-            {showClinicSearchDropdown && clinicSearchTerm.length > 0 && (
-              <Card className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                {clinicasOptions
-                  .filter(option => option.value !== '' && option.label.toLowerCase().includes(clinicSearchTerm.toLowerCase()))
-                  .map(option => (
-                    <div
-                      key={option.value}
-                      className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer transition-colors"
-                      onClick={() => handleSelectClinicFromSearch(option.value, option.label)}
-                    >
-                      {option.label}
-                    </div>
-                  ))}
-                {clinicasOptions.filter(option => option.value !== '' && option.label.toLowerCase().includes(clinicSearchTerm.toLowerCase())).length === 0 && (
-                  <div className="px-4 py-2 text-sm text-gray-500">Nenhuma clínica encontrada.</div>
-                )}
-              </Card>
-            )}
-          </div>
-
-          <Select
-            options={clinicasOptions}
-            value={selectedClinicaFilter || ''}
-            onChange={handleClinicaChange}
-            className="w-full md:w-48 bg-white border-gray-300 text-gray-900"
-          />
-
+      {isViewMode && (
+        <div className="fixed top-4 right-4 z-50">
           <Button
-            onClick={() => setIsAdvancedFilterModalOpen(true)}
-            variant="outline"
-            className="flex items-center px-4 py-2 rounded-lg"
+            onClick={toggleViewMode}
+            className="flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg"
           >
-            <FiFilter className="mr-2" /> Mais Filtros
-          </Button>
-
-          {/* Botão para alternar o modo de edição */}
-          <Button
-            onClick={() => setIsEditMode(!isEditMode)}
-            variant="outline"
-            className={cn("flex items-center px-4 py-2 rounded-lg transition-colors duration-200", {
-              'bg-indigo-600 text-white hover:bg-indigo-700': isEditMode,
-              'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300': !isEditMode,
-            })}
-          >
-            {isEditMode ? <FiSave className="mr-2" /> : <FiEdit className="mr-2" />}
-            {isEditMode ? 'Salvar Edições (Mocked)' : 'Modo de Edição'}
+            <FiX className="h-5 w-5 mr-2" /> Sair do Modo Visualização
           </Button>
         </div>
+      )}
+
+      {/* Botões de Edição/Visualização */}
+      {!isViewMode && ( // Só mostra se não estiver no modo de visualização exclusivo
+        <div className="fixed top-4 right-4 z-50 flex space-x-2">
+          {isEditMode ? (
+            <>
+              <Button
+                onClick={handleSaveChanges}
+                className="flex items-center px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg"
+              >
+                <FiSave className="h-5 w-5 mr-2" /> Salvar Alterações
+              </Button>
+              <Button
+                onClick={handleDiscardChanges}
+                className="flex items-center px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-lg"
+              >
+                <FiX className="h-5 w-5 mr-2" /> Descartar Alterações
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={toggleEditMode}
+              className="flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg"
+            >
+              <FiEdit className="h-5 w-5 mr-2" /> Entrar no Modo de Edição
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div>
+        <h1 className="text-4xl font-extrabold text-gray-900">Dashboard de Marketing</h1>
+        <p className="text-gray-600 mt-2 text-lg">Visão Geral de Performance da Empresa</p>
       </div>
+
+      {/* Seção de Filtros */}
+      <section className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Filtros</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div>
+            <label htmlFor="clinic-select" className="block text-sm font-medium text-gray-700 mb-1">Clínica</label>
+            <Select
+              id="clinic-select"
+              value={selectedClinicaFilter || ''}
+              onValueChange={handleClinicChange}
+              options={clinicas.map(c => ({ value: String(c.id), label: c.name }))}
+              placeholder="Selecione uma clínica"
+            />
+          </div>
+          <div>
+            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
+            <Input
+              id="start-date"
+              type="date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              className="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded-md px-3 py-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
+            <Input
+              id="end-date"
+              type="date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              className="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded-md px-3 py-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="campaign-select" className="block text-sm font-medium text-gray-700 mb-1">Campanha</label>
+            <Select
+              id="campaign-select"
+              value={selectedCampaign}
+              onValueChange={handleCampaignChange}
+              options={campaignOptions}
+              placeholder="Todas as Campanhas"
+            />
+          </div>
+          <div>
+            <label htmlFor="creative-select" className="block text-sm font-medium text-gray-700 mb-1">Criativo</label>
+            <Select
+              id="creative-select"
+              value={selectedCreative}
+              onValueChange={handleCreativeChange}
+              options={creativeOptions}
+              placeholder="Todos os Criativos"
+            />
+          </div>
+        </div>
+      </section>
+
 
       <section className="space-y-10">
 
@@ -745,7 +924,7 @@ export default function DashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de CPL por campanha disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -778,7 +957,7 @@ export default function DashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de leads por tipo disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -789,10 +968,12 @@ export default function DashboardPage() {
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
               dataToEditKeys={filteredCreativesData.length > 0 ? [
-                { dataIndex: 0, key: 'clicks', label: 'Cliques (1º Criativo)', dataType: 'creativesData' },
-                { dataIndex: 0, key: 'leads', label: 'Leads (1º Criativo)', dataType: 'creativesData' },
-                { dataIndex: 0, key: 'conversionRate', label: 'Conversão (1º Criativo)', dataType: 'creativesData' },
-                { dataIndex: 0, key: 'ctr', label: 'CTR (1º Criativo)', dataType: 'creativesData' },
+                { dataIndex: 0, key: 'clicks', label: 'Cliques (1ª Campanha)', dataType: 'creativesData' },
+                { dataIndex: 0, key: 'leads', label: 'Leads (1ª Campanha)', dataType: 'creativesData' },
+                { dataIndex: 0, key: 'conversionRate', label: 'Conversão (1ª Campanha)', dataType: 'creativesData' },
+                { dataIndex: 0, key: 'ctr', label: 'CTR (1ª Campanha)', dataType: 'creativesData' },
+                { dataIndex: 0, key: 'views', label: 'Views (1ª Campanha)', dataType: 'creativesData' },
+                { dataIndex: 0, key: 'cpl', label: 'CPL (1ª Campanha)', dataType: 'creativesData' },
               ] : []}
             >
               {filteredCreativesData.length > 0 ? (
@@ -816,10 +997,12 @@ export default function DashboardPage() {
                     <Bar dataKey="leads" fill={SUCCESS_COLOR} name="Leads" radius={[0, 5, 5, 0]} />
                     <Bar dataKey="conversionRate" fill={PRIMARY_ACCENT} name="Conversão (%)" radius={[0, 5, 5, 0]} />
                     <Bar dataKey="ctr" fill={WARNING_COLOR} name="CTR (%)" radius={[0, 5, 5, 0]} />
+                    <Bar dataKey="views" fill={INFO_COLOR} name="Views" radius={[0, 5, 5, 0]} />
+                    <Bar dataKey="cpl" fill={ERROR_COLOR} name="CPL" radius={[0, 5, 5, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de criativo disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
           </div>
@@ -834,7 +1017,7 @@ export default function DashboardPage() {
               className="lg:col-span-1"
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
-              dataToEditKeys={leadsEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Leads (1º Dia)', dataType: 'leadsEvolution' }] : []}
+              dataToEditKeys={leadsEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Leads (1ª Campanha)', dataType: 'leadsEvolution' }] : []}
             >
               {leadsEvolutionFiltered.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -853,7 +1036,7 @@ export default function DashboardPage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de evolução de leads disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -863,7 +1046,7 @@ export default function DashboardPage() {
               className="lg:col-span-1"
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
-              dataToEditKeys={salesEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Vendas (1º Dia)', dataType: 'salesEvolution' }] : []}
+              dataToEditKeys={salesEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Vendas (1ª Campanha)', dataType: 'salesEvolution' }] : []}
             >
               {salesEvolutionFiltered.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -882,7 +1065,7 @@ export default function DashboardPage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de evolução de vendas disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -893,8 +1076,8 @@ export default function DashboardPage() {
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
               dataToEditKeys={leadsEvolutionFiltered.length > 0 && salesEvolutionFiltered.length > 0 ? [
-                { dataIndex: 0, key: 'value', label: 'Leads (1º Dia)', dataType: 'leadsEvolution' },
-                { dataIndex: 0, key: 'value', label: 'Investimento (1º Dia)', dataType: 'salesEvolution' }
+                { dataIndex: 0, key: 'value', label: 'Leads (1ª Campanha)', dataType: 'leadsEvolution' },
+                { dataIndex: 0, key: 'value', label: 'Investimento (1ª Campanha)', dataType: 'salesEvolution' }
               ] : []}
             >
               {leadsEvolutionFiltered.length > 0 && salesEvolutionFiltered.length > 0 ? (
@@ -925,7 +1108,7 @@ export default function DashboardPage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de investimento vs. leads disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -966,7 +1149,7 @@ export default function DashboardPage() {
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de origem de leads disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -976,7 +1159,7 @@ export default function DashboardPage() {
               className="lg:col-span-1"
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
-              dataToEditKeys={leadsEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Leads (1º Dia)', dataType: 'leadsEvolution' }] : []}
+              dataToEditKeys={leadsEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Leads (1ª Campanha)', dataType: 'leadsEvolution' }] : []}
             >
               {leadsEvolutionFiltered.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -1004,7 +1187,7 @@ export default function DashboardPage() {
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de taxa de conversão disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -1037,7 +1220,7 @@ export default function DashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de funil de conversão disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -1048,8 +1231,8 @@ export default function DashboardPage() {
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
               dataToEditKeys={roiHistoryData.length > 0 ? [
-                { dataIndex: 0, key: 'roi', label: 'ROI Real (1º Dia)', dataType: 'roiHistory' },
-                { dataIndex: 0, key: 'estimatedRoi', label: 'ROI Estimado (1º Dia)', dataType: 'roiHistory' },
+                { dataIndex: 0, key: 'roi', label: 'ROI Real (1ª Campanha)', dataType: 'roiHistory' },
+                { dataIndex: 0, key: 'estimatedRoi', label: 'ROI Estimado (1ª Campanha)', dataType: 'roiHistory' },
               ] : []}
             >
               {roiHistoryData.length > 0 ? (
@@ -1071,7 +1254,7 @@ export default function DashboardPage() {
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de ROI disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -1082,10 +1265,10 @@ export default function DashboardPage() {
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
               dataToEditKeys={clinicsComparisonData.length > 0 ? [
-                { dataIndex: 0, key: 'cpl', label: 'CPL (1ª Clínica)', dataType: 'clinicsOverview' },
-                { dataIndex: 0, key: 'cpc', label: 'CPC (1ª Clínica)', dataType: 'clinicsOverview' },
-                { dataIndex: 0, key: 'performanceChange', label: 'Desempenho (1ª Clínica)', dataType: 'clinicsOverview' },
-                { dataIndex: 0, key: 'recentLeads', label: 'Leads Recentes (1ª Clínica)', dataType: 'clinicsOverview' },
+                { dataIndex: 0, key: 'cpl', label: 'CPL (1ª Campanha)', dataType: 'clinicsOverview' },
+                { dataIndex: 0, key: 'cpc', label: 'CPC (1ª Campanha)', dataType: 'clinicsOverview' },
+                { dataIndex: 0, key: 'performanceChange', label: 'Desempenho (1ª Campanha)', dataType: 'clinicsOverview' },
+                { dataIndex: 0, key: 'recentLeads', label: 'Leads Recentes (1ª Campanha)', dataType: 'clinicsOverview' },
               ] : []}
             >
               {clinicsComparisonData.length > 0 ? (
@@ -1093,8 +1276,8 @@ export default function DashboardPage() {
                   <RadarChart cx="50%" cy="50%" outerRadius="80%" data={clinicsComparisonData}>
                     <PolarGrid stroke="#E0E0E0" />
                     <PolarAngleAxis dataKey="subject" stroke="#6B7280" tick={{ fill: '#4B5563', fontSize: 12 }} />
-                    <PolarRadiusAxis angle={90} domain={[0, 100]} stroke="#E0E0E0" tick={false} axisLine={false} />
-                    <Radar name={clinicasOptions.find(c => c.value === selectedClinicaFilter)?.label || 'Clínica Selecionada'} dataKey="cpl" stroke={PRIMARY_ACCENT} fill={PRIMARY_ACCENT} fillOpacity={0.6} />
+                    <PolarRadiusAxis angle={90} domain={[0, Math.max(...clinicsComparisonData.map(d => d.cpl * 10 || 0)) * 1.1]} stroke="#E0E0E0" tick={false} axisLine={false} />
+                    <Radar name={currentDashboardDataForDisplay?.clinicsOverview.find(c => c.id === parseInt(clinicIdFromUrl || '0'))?.name || 'Clínica Selecionada'} dataKey="cpl" stroke={PRIMARY_ACCENT} fill={PRIMARY_ACCENT} fillOpacity={0.6} />
                     <Tooltip
                       contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                       labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
@@ -1112,7 +1295,7 @@ export default function DashboardPage() {
                   </RadarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado para comparação de clínicas disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -1122,7 +1305,7 @@ export default function DashboardPage() {
               className="lg:col-span-1"
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
-              dataToEditKeys={instagramInsightsData.length > 0 ? [{ dataIndex: 0, key: 'value', label: `${instagramInsightsData[0]?.metric || '1ª Métrica'}:`, dataType: 'instagramInsights' }] : []}
+              dataToEditKeys={instagramInsightsData.length > 0 ? [{ dataIndex: 0, key: 'value', label: `${instagramInsightsData[0]?.metric || '1ª Campanha'}:`, dataType: 'instagramInsights' }] : []}
             >
               {instagramInsightsData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -1141,7 +1324,7 @@ export default function DashboardPage() {
                   </RadarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de engajamento do Instagram disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
 
@@ -1152,8 +1335,8 @@ export default function DashboardPage() {
               isEditMode={isEditMode}
               onDataChange={handleEditableDataChange}
               dataToEditKeys={instagramPostInteractionsData.length > 0 ? [
-                { dataIndex: 0, key: 'likes', label: 'Curtidas (1º Dia)', dataType: 'instagramPostInteractions' },
-                { dataIndex: 0, key: 'comments', label: 'Comentários (1º Dia)', dataType: 'instagramPostInteractions' },
+                { dataIndex: 0, key: 'likes', label: 'Curtidas (1ª Campanha)', dataType: 'instagramPostInteractions' },
+                { dataIndex: 0, key: 'comments', label: 'Comentários (1ª Campanha)', dataType: 'instagramPostInteractions' },
               ] : []}
             >
               {instagramPostInteractionsData.length > 0 ? (
@@ -1177,7 +1360,7 @@ export default function DashboardPage() {
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de interação do Instagram disponível.</div>
+                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
               )}
             </ChartCard>
           </div>
@@ -1186,8 +1369,8 @@ export default function DashboardPage() {
         <div className="space-y-6">
           <h2 className="text-2xl font-bold text-gray-800">Alertas Recentes</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentDashboardData.recentAlerts.length > 0 ? (
-              currentDashboardData.recentAlerts.map(alert => (
+            {currentDashboardDataForDisplay.recentAlerts.length > 0 ? (
+              currentDashboardDataForDisplay.recentAlerts.map(alert => (
                 <Card key={alert.id} className={cn(`p-5 flex items-start gap-4 rounded-lg shadow-md`, {
                   'border-yellow-300 bg-yellow-50': alert.type === 'warning',
                   'border-blue-300 bg-blue-50': alert.type === 'info',
@@ -1323,24 +1506,12 @@ export default function DashboardPage() {
                 </TableBody>
               </Table>
             ) : (
-              <div className="text-center text-gray-500 py-10">Nenhum dado de clínica disponível com os filtros selecionados.</div>
-            )}
+                <div className="text-center text-gray-500 py-10">Nenhum dado de clínica disponível com os filtros selecionados.</div>
+              )}
           </Card>
         </div>
 
       </section>
-
-      <AdvancedFilterModal
-        isOpen={isAdvancedFilterModalOpen}
-        onClose={() => setIsAdvancedFilterModalOpen(false)}
-        onApplyFilters={handleApplyAdvancedFilters}
-        initialStartDate={startDate}
-        initialEndDate={endDate}
-        initialCampaignId={selectedCampaign}
-        initialCreativeId={selectedCreative}
-        campaignOptions={campaignOptions}
-        creativeOptions={creativeOptions}
-      />
     </div>
   );
 }

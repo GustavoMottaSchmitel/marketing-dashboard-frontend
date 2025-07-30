@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerSession, getCurrentUser } from '@/app/actions/auth';
-import { DashboardClientWrapper } from './_components/DashboardClientWrapper'; // Importar o novo componente
+import { DashboardClientWrapper } from '@/app/dashboard/_components/DashboardClientWrapper'; 
 
 export default async function DashboardLayout({
   children,

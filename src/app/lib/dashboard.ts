@@ -24,6 +24,7 @@ export interface CampaignData {
   leads: number;
   cpl: number;
   bestCreative: string;
+  roi: number;
 }
 
 export interface CreativeData {
@@ -38,7 +39,7 @@ export interface CreativeData {
 }
 
 export interface AlertData {
-  id: string; // Ou number, dependendo do backend
+  id: number; // <--- CORREÇÃO AQUI: Mudado de 'string' para 'number'
   message: string;
   type: 'warning' | 'info' | 'success' | 'error';
   date: string; // YYYY-MM-DD ou ISO string

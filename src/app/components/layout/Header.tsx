@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Download, Bell, Settings, ChevronDown, ChevronUp, FileText, DownloadCloud, Printer, User, LogOut, EyeIcon, MenuIcon } from "lucide-react";
+import { Download, Bell, Settings, ChevronDown, ChevronUp, FileText, DownloadCloud, Printer, User, LogOut, EyeIcon, EditIcon, MenuIcon } from "lucide-react";
 import { logoutAction } from '@/app/actions/auth';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -18,7 +18,8 @@ interface HeaderProps {
   onToggleSidebar: () => void;
   isViewMode: boolean;
   onToggleViewMode: () => void;
-  // isEditMode e onToggleEditMode foram removidos daqui, pois o botão de edição agora está na página do dashboard
+  isEditMode: boolean;
+  onToggleEditMode: () => void;
 }
 
 interface NextRedirectError extends Error {
@@ -32,6 +33,8 @@ const Header: React.FC<HeaderProps> = ({
   onToggleSidebar,
   isViewMode,
   onToggleViewMode,
+  isEditMode,
+  onToggleEditMode,
 }) => {
   const router = useRouter();
   const [showExportDropdown, setShowExportDropdown] = useState(false);
@@ -124,23 +127,21 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className={cn(
-      "bg-white border-b border-gray-200 shadow-sm relative z-30 transition-all duration-300 ease-in-out",
-      isViewMode ? "h-16" : "h-20"
+      "bg-white border-b border-gray-200 shadow-sm relative z-30 transition-all duration-300 ease-in-out h-20", // Altura fixa h-20
+      isViewMode && "hidden" // Oculta completamente em modo de visualização
     )}>
       <div className="flex items-center justify-between px-6 py-4 w-full h-full">
         <div className="flex items-center">
           {/* Botão de alternar Sidebar (visível apenas fora do modo de visualização) */}
-          {!isViewMode && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggleSidebar}
-              className="mr-4 text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
-              aria-label="Toggle Sidebar"
-            >
-              <MenuIcon className="h-6 w-6" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleSidebar}
+            className="mr-4 text-gray-700 hover:bg-gray-50 rounded-full transition-colors"
+            aria-label="Toggle Sidebar"
+          >
+            <MenuIcon className="h-6 w-6" />
+          </Button>
         </div>
 
         <div className="flex items-center space-x-4 ml-auto">
@@ -157,6 +158,21 @@ const Header: React.FC<HeaderProps> = ({
           >
             <EyeIcon className="h-5 w-5 mr-2" />
             {isViewMode ? 'Sair do Modo Visualização' : 'MODO VISUALIZAÇÃO'}
+          </Button>
+
+          {/* Botão EDIT MODE */}
+          <Button
+            variant={isEditMode ? "default" : "outline"}
+            onClick={onToggleEditMode}
+            className={cn(
+              "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out",
+              isEditMode
+                ? "bg-green-600 text-white hover:bg-green-700 shadow-md"
+                : "bg-white border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 shadow-sm"
+            )}
+          >
+            <EditIcon className="h-5 w-5 mr-2" />
+            {isEditMode ? 'Sair do Modo Edição' : 'EDIT MODE'}
           </Button>
 
           {/* Export Dropdown */}
