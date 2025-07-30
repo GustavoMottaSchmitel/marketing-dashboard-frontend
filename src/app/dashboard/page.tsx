@@ -7,14 +7,12 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area,
 } from 'recharts';
-// Ícones que ainda são usados diretamente neste arquivo (para alertas e botões de edição)
 import { FiAlertTriangle, FiInfo, FiCheckCircle, FiXCircle, FiEdit, FiSave, FiX } from 'react-icons/fi';
 
 import { cn } from '@/app/lib/utils';
 import { getDashboardData as fetchRealDashboardData, DashboardDataDTO, EvolutionData, ClinicOverviewData as BackendClinicOverviewData, CampaignData, CreativeData, OriginData, LeadTypeDistributionData, ROIHistoryData, InstagramInsightData, InstagramPostInteraction, ConversionFunnelData } from '../lib/dashboard';
 import { getClinicas, MOCKED_CLINIC_ID_NUMERIC, MOCKED_CLINIC_NAME, Clinica } from '../lib/clinicas';
 
-// Importe o novo componente de seção
 import { MetricCardsSection } from './_sections/MetricCardsSection';
 
 // --- DADOS MOCKADOS PARA TESTE DO EDITOR ---
@@ -197,7 +195,6 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // 1. **TODAS AS DECLARAÇÕES DE useState NO TOPO**
   const [isEditMode, setIsEditMode] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
 
@@ -211,7 +208,6 @@ export default function DashboardPage() {
   const [clinicas, setClinicas] = useState<Clinica[]>([]);
   const [loadingClinicas, setLoadingClinicas] = useState(true);
 
-  // Variáveis de estado que estavam causando o erro de "used before declaration"
   const [dashboardData, setDashboardData] = useState<DashboardDataDTO | null>(null);
   const [editableDashboardData, setEditableDashboardData] = useState<DashboardDataDTO | null>(null);
 
@@ -219,7 +215,6 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
 
-  // 2. **TODAS AS DECLARAÇÕES DE useCallback APÓS OS useState (e com dependências declaradas)**
   const toggleViewMode = useCallback(() => {
     setIsViewMode(prev => !prev);
   }, []);
@@ -237,22 +232,19 @@ export default function DashboardPage() {
       if (endDateObj && itemDate > endDateObj) return false;
       return true;
     });
-  }, []); // Sem dependências externas além dos parâmetros
+  }, []);
 
-  // toggleEditMode depende de isEditMode, dashboardData e setEditableDashboardData
   const toggleEditMode = useCallback(() => {
     setIsEditMode(prev => {
-      // Se estava em modo de edição e está saindo, reseta editableDashboardData
       if (prev) {
         setEditableDashboardData(null);
-      } else if (dashboardData) { // Se está entrando em modo de edição e dashboardData existe
+      } else if (dashboardData) {
         setEditableDashboardData(JSON.parse(JSON.stringify(dashboardData)));
       }
       return !prev;
     });
-  }, [dashboardData]); // isEditMode não precisa ser uma dependência aqui diretamente, pois o `prev` já lida com o estado anterior.
+  }, [dashboardData]);
 
-  // handleEditableDataChange depende de editableDashboardData
   const handleEditableDataChange = useCallback(
     (
       field: EditableField,
@@ -464,7 +456,6 @@ export default function DashboardPage() {
     router.replace(`/dashboard?${newSearchParams.toString()}`);
   }, [router, searchParams]);
 
-  // loadDashboardData depende de searchParams, setLoading, setError, setDashboardData
   const loadDashboardData = useCallback(() => {
     const currentClinicId = searchParams.get('clinicId');
     const currentStartDate = searchParams.get('startDate') || '';
@@ -510,7 +501,6 @@ export default function DashboardPage() {
     }
   }, [searchParams, setLoading, setError, setDashboardData]);
 
-  // handleSaveChanges depende de editableDashboardData e setDashboardData
   const handleSaveChanges = useCallback(() => {
     if (editableDashboardData) {
       setDashboardData(editableDashboardData);
@@ -518,24 +508,18 @@ export default function DashboardPage() {
     }
   }, [editableDashboardData, setDashboardData]);
 
-  // handleDiscardChanges depende de setEditableDashboardData
   const handleDiscardChanges = useCallback(() => {
     setEditableDashboardData(null);
   }, [setEditableDashboardData]);
 
 
-  // 3. **TODAS AS DECLARAÇÕES DE useMemo APÓS useState e useCallback (se dependências existirem)**
-  // currentDashboardDataForDisplay depende de isEditMode, editableDashboardData, dashboardData
   const currentDashboardDataForDisplay = useMemo(() => {
     return isEditMode && editableDashboardData ? editableDashboardData : dashboardData;
   }, [isEditMode, editableDashboardData, dashboardData]);
 
-  // leadsEvolutionFiltered depende de currentDashboardDataForDisplay, startDate, endDate, getFilteredEvolutionData
   const leadsEvolutionFiltered = useMemo(() => getFilteredEvolutionData(currentDashboardDataForDisplay?.leadsEvolution || [], startDate, endDate), [currentDashboardDataForDisplay?.leadsEvolution, startDate, endDate, getFilteredEvolutionData]);
-  // salesEvolutionFiltered depende de currentDashboardDataForDisplay, startDate, endDate, getFilteredEvolutionData
   const salesEvolutionFiltered = useMemo(() => getFilteredEvolutionData(currentDashboardDataForDisplay?.salesEvolution || [], startDate, endDate), [currentDashboardDataForDisplay?.salesEvolution, startDate, endDate, getFilteredEvolutionData]);
 
-  // campaignOptions depende de currentDashboardDataForDisplay
   const campaignOptions = useMemo(() => {
     const options = (currentDashboardDataForDisplay?.campaignsData || []).map(c => ({ value: String(c.id), label: c.name }));
     return [{ value: '', label: 'Todas as Campanhas' }, ...options];
@@ -611,8 +595,6 @@ export default function DashboardPage() {
   const clinicsOverviewForTable = useMemo(() => currentDashboardDataForDisplay?.clinicsOverview || [], [currentDashboardDataForDisplay]);
 
 
-  // 4. **TODAS AS DECLARAÇÕES DE useEffect POR ÚLTIMO**
-  // Efeito para carregar a lista de clínicas
   useEffect(() => {
     setLoadingClinicas(true);
     getClinicas(0, 100)
@@ -632,7 +614,6 @@ export default function DashboardPage() {
       });
   }, [router, searchParams, clinicIdFromUrl]);
 
-  // Efeito para sincronizar editableDashboardData com dashboardData ao mudar o modo de edição
   useEffect(() => {
     if (isEditMode && dashboardData) {
       setEditableDashboardData(JSON.parse(JSON.stringify(dashboardData)));
@@ -641,7 +622,6 @@ export default function DashboardPage() {
     }
   }, [isEditMode, dashboardData]);
 
-  // Recarrega os dados do dashboard sempre que os searchParams mudam
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
@@ -649,7 +629,7 @@ export default function DashboardPage() {
 
   if (loading || loadingClinicas) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-neutral-50 text-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-900"> {/* Alterado para bg-gray-100 */}
         <div className="text-center">
           <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-500 mx-auto mb-4"></div>
           <p className="text-xl font-semibold">Carregando Dashboard...</p>
@@ -661,7 +641,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-neutral-50 text-red-500 p-8">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-red-500 p-8"> {/* Alterado para bg-gray-100 */}
         <Card className="p-8 border border-red-400 rounded-lg shadow-md text-center bg-white">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Erro ao Carregar Dashboard</h2>
           <p className="mb-4 text-gray-700">{error}</p>
@@ -678,7 +658,7 @@ export default function DashboardPage() {
 
   if (!currentDashboardDataForDisplay || !clinicIdFromUrl) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-neutral-50 text-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-900"> {/* Alterado para bg-gray-100 */}
         <div className="text-center">
           <p className="text-xl font-semibold">Nenhum dado disponível para a clínica selecionada.</p>
           <p className="text-sm text-gray-600">Selecione uma clínica no menu superior ou verifique se os dados foram ingeridos pelo backend.</p>
@@ -689,9 +669,10 @@ export default function DashboardPage() {
 
 
   return (
-    <div className="space-y-10 p-8 bg-neutral-50 min-h-screen text-gray-900">
+    <div className="space-y-10 p-8 bg-gray-100 min-h-screen text-gray-900"> {/* Alterado para bg-gray-100 */}
+      {/* Botão para Sair do Modo Visualização (sempre visível no canto superior direito) */}
       {isViewMode && (
-        <div className="fixed top-4 right-4 z-50">
+        <div className="fixed top-24 right-4 z-50"> {/* Alterado de top-4 para top-24 */}
           <Button
             onClick={toggleViewMode}
             className="flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg"
@@ -701,9 +682,9 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Botões de Edição/Visualização */}
-      {!isViewMode && ( // Só mostra se não estiver no modo de visualização exclusivo
-        <div className="fixed top-4 right-4 z-50 flex space-x-2">
+      {/* Botões de Edição (visíveis apenas no modo normal, não no modo visualização) */}
+      {!isViewMode && (
+        <div className="fixed top-24 right-4 z-50 flex space-x-2"> {/* Alterado de top-4 para top-24 */}
           {isEditMode ? (
             <>
               <Button
