@@ -29,10 +29,10 @@ const NEXT_REDIRECT_ERROR_CODE = 'NEXT_REDIRECT';
 
 interface SidebarProps {
   isMinimized: boolean;
-  isViewMode: boolean;
+  isViewMode: boolean; // Mantém a prop para controle de estado, mas não para renderização condicional direta
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => { // Removido isViewMode do destructuring
   const pathname = usePathname();
 
   const handleLogout = async () => {
@@ -135,14 +135,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
     },
   ];
 
-  if (isViewMode) {
-    return null;
-  }
-
   return (
     <aside className={cn(
-      // Removido 'fixed', 'left-0', 'top-0', 'h-full', 'z-40'
-      // A altura será gerenciada pelo grid pai (DashboardClientWrapper)
       "flex flex-col bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out",
       isMinimized ? "w-16" : "w-60"
     )}>
