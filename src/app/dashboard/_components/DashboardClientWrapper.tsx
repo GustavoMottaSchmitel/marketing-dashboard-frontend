@@ -6,7 +6,7 @@ import { Sidebar } from '@/app/components/layout/Sidebar';
 import { cn } from '@/app/lib/utils';
 import { X } from 'lucide-react';
 import { Button } from '@/app/components/ui/custom-elements';
-import { DashboardModeProvider, useDashboardMode } from '@/app/contexts/DashboardModeContext'; // Importar o provedor e o hook
+import { DashboardModeProvider, useDashboardMode } from '@/app/contexts/DashboardModeContext';
 
 interface DashboardClientWrapperProps {
   userEmail: string | null;
@@ -14,7 +14,6 @@ interface DashboardClientWrapperProps {
 }
 
 export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ userEmail, children }) => {
-  // O estado de isSidebarMinimized ainda é local a este wrapper
   const [isSidebarMinimized, setIsSidebarMinimized] = useState(false);
 
   // Usar o hook do contexto para acessar os estados e funções de modo
@@ -38,7 +37,8 @@ export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ 
 
       <div className={cn(
         "flex-1 flex flex-col transition-all duration-300 ease-in-out",
-        isViewMode ? "ml-0" : (isSidebarMinimized ? "ml-16" : "ml-60")
+        // Ajustado ml para considerar a borda de 1px da sidebar
+        isViewMode ? "ml-0" : (isSidebarMinimized ? "ml-[65px]" : "ml-[241px]")
       )}>
         {/* Header - Condicionalmente renderizado */}
         {!isViewMode && (
@@ -47,9 +47,9 @@ export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ 
               userEmail={userEmail}
               onToggleSidebar={handleToggleSidebar}
               isViewMode={isViewMode}
-              onToggleViewMode={onToggleViewMode} // Passa a função do contexto
+              onToggleViewMode={onToggleViewMode}
               isEditMode={isEditMode}
-              onToggleEditMode={onToggleEditMode} // Passa a função do contexto
+              onToggleEditMode={onToggleEditMode}
             />
           </header>
         )}
@@ -58,7 +58,7 @@ export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ 
         {isViewMode && (
           <div className="fixed top-4 right-4 z-50">
             <Button
-              onClick={onToggleViewMode} // Usa a função do contexto
+              onClick={onToggleViewMode}
               className="flex items-center px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-lg transition-colors duration-300"
             >
               <X className="h-5 w-5 mr-2" /> Sair do Modo Visualização
@@ -70,7 +70,6 @@ export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ 
           "flex-1 p-8 overflow-y-auto",
           isViewMode ? "p-4 pt-16" : ""
         )}>
-          {/* O children é renderizado diretamente, e ele usará o useDashboardMode */}
           {children}
         </main>
       </div>

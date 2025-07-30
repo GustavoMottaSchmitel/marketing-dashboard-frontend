@@ -16,7 +16,7 @@ import { cn } from '@/app/lib/utils';
 interface HeaderProps {
   userEmail: string | null;
   onToggleSidebar: () => void;
-  isViewMode: boolean; 
+  isViewMode: boolean;
   onToggleViewMode: () => void;
   isEditMode: boolean;
   onToggleEditMode: () => void;
@@ -31,10 +31,10 @@ const NEXT_REDIRECT_ERROR_CODE = 'NEXT_REDIRECT';
 const Header: React.FC<HeaderProps> = ({
   userEmail,
   onToggleSidebar,
-  isViewMode, 
+  isViewMode,
   onToggleViewMode,
   isEditMode,
-  onToggleEditMode, 
+  onToggleEditMode,
 }) => {
   const router = useRouter();
   const [showExportDropdown, setShowExportDropdown] = useState(false);
@@ -126,11 +126,9 @@ const Header: React.FC<HeaderProps> = ({
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
 
   return (
-    <header className="bg-white border-b border-gray-200 shadow-sm relative z-30 h-20 flex items-center px-6 py-4 w-full">
+    <header className="bg-white border-b border-gray-200 shadow-sm relative z-30 h-20 flex items-center px-6 w-full"> {/* Removido py-4 */}
       <div className="flex items-center">
-
         {/* Botão de alternar Sidebar */}
-
         <Button
           variant="ghost"
           size="icon"
@@ -140,13 +138,11 @@ const Header: React.FC<HeaderProps> = ({
         >
           <MenuIcon className="h-6 w-6" />
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900 hidden sm:block">Dashboard</h1> {/* Título do Dashboard */}
+        <h1 className="text-2xl font-bold text-gray-900 hidden sm:block">Dashboard</h1>
       </div>
 
       <div className="flex items-center space-x-4 ml-auto">
-
         {/* Botão MODO VISUALIZAÇÃO */}
-
         <Button
           variant={isViewMode ? "default" : "outline"}
           onClick={onToggleViewMode}
@@ -154,7 +150,7 @@ const Header: React.FC<HeaderProps> = ({
             "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out",
             isViewMode
               ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md"
-              : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-800 shadow-sm hover:shadow-md" // Melhorado hover
+              : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-800 shadow-sm hover:shadow-md"
           )}
         >
           <EyeIcon className="h-5 w-5 mr-2" />
@@ -162,7 +158,6 @@ const Header: React.FC<HeaderProps> = ({
         </Button>
 
         {/* Botão EDIT MODE */}
-
         <Button
           variant={isEditMode ? "default" : "outline"}
           onClick={onToggleEditMode}
@@ -170,7 +165,7 @@ const Header: React.FC<HeaderProps> = ({
             "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out",
             isEditMode
               ? "bg-green-600 text-white hover:bg-green-700 shadow-md"
-              : "bg-white border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 shadow-sm hover:shadow-md" // Melhorado hover
+              : "bg-white border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 shadow-sm hover:shadow-md"
           )}
         >
           <EditIcon className="h-5 w-5 mr-2" />
@@ -178,11 +173,10 @@ const Header: React.FC<HeaderProps> = ({
         </Button>
 
         {/* Export Dropdown */}
-
         <div className="relative" ref={exportDropdownRef}>
           <Button
             onClick={() => setShowExportDropdown(!showExportDropdown)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition shadow-md hover:shadow-lg" // Melhorado hover
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition shadow-md hover:shadow-lg"
           >
             <Download size={18} />
             Exportar {showExportDropdown ? <ChevronUp size={16} className="ml-1" /> : <ChevronDown size={16} className="ml-1" />}
@@ -207,11 +201,10 @@ const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Notifications Bell Button and Dropdown */}
-
         <div className="relative" ref={notificationsDropdownRef}>
           <Button
             onClick={handleNotificationClick}
-            className="relative p-2 text-yellow-500 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md" // Melhorado hover
+            className="relative p-2 text-yellow-500 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md"
             aria-label="Notificações e Alertas"
           >
             <Bell size={20} />
@@ -233,17 +226,15 @@ const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Settings Button */}
-
-        <Button className="p-2 text-gray-700 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md"> {/* Melhorado hover */}
+        <Button className="p-2 text-gray-700 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md">
           <Settings size={20} />
         </Button>
 
         {/* User Profile Dropdown */}
-
         <div className="relative" ref={userDropdownRef}>
           <Button
             onClick={() => setShowUserDropdown(!showUserDropdown)}
-            className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-gray-100 transition-colors cursor-pointer shadow-sm hover:shadow-md" // Melhorado hover
+            className="flex items-center space-x-2 p-2 rounded-xl bg-white hover:bg-gray-100 transition-colors cursor-pointer shadow-sm hover:shadow-md"
             aria-label="Perfil do usuário e sair"
           >
             <span className="text-sm font-medium text-gray-800 hidden sm:block">
