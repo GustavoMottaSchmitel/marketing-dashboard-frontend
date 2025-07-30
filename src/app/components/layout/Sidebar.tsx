@@ -142,6 +142,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
   return (
     <aside className={cn(
       // Removido 'fixed', 'left-0', 'top-0', 'h-full', 'z-40'
+      // A altura será gerenciada pelo grid pai (DashboardClientWrapper)
       "flex flex-col bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out",
       isMinimized ? "w-16" : "w-60"
     )}>
