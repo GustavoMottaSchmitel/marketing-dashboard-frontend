@@ -7,13 +7,14 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area,
 } from 'recharts';
-import { FiAlertTriangle, FiInfo, FiCheckCircle, FiXCircle, FiEdit, FiSave, FiX } from 'react-icons/fi';
+import { FiAlertTriangle, FiInfo, FiCheckCircle, FiXCircle } from 'react-icons/fi';
 
 import { cn } from '@/app/lib/utils';
 import { getDashboardData as fetchRealDashboardData, DashboardDataDTO, EvolutionData, ClinicOverviewData as BackendClinicOverviewData, CampaignData, CreativeData, OriginData, LeadTypeDistributionData, ROIHistoryData, InstagramInsightData, InstagramPostInteraction, ConversionFunnelData } from '../lib/dashboard';
 import { getClinicas, MOCKED_CLINIC_ID_NUMERIC, MOCKED_CLINIC_NAME, Clinica } from '../lib/clinicas';
 
 import { MetricCardsSection } from './_sections/MetricCardsSection';
+import { useDashboardMode } from '@/app/contexts/DashboardModeContext'; // Importar o hook do contexto
 
 // --- DADOS MOCKADOS PARA TESTE DO EDITOR ---
 const generateMockDashboardData = (): DashboardDataDTO => ({
@@ -191,12 +192,13 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, children, className = '', 
   </Card>
 );
 
+// Remova as props isViewMode, onToggleViewMode, isEditMode, onToggleEditMode
 export default function DashboardPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isViewMode, setIsViewMode] = useState(false);
+  // Use o hook do contexto para obter os estados e funções
+  const { isViewMode, isEditMode } = useDashboardMode();
 
   const clinicIdFromUrl = searchParams.get('clinicId');
   const [selectedClinicaFilter, setSelectedClinicaFilter] = useState<string | null>(clinicIdFromUrl);
@@ -214,11 +216,6 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-
-  const toggleViewMode = useCallback(() => {
-    setIsViewMode(prev => !prev);
-  }, []);
-
   const getFilteredEvolutionData = useCallback((data: EvolutionData[], start: string, end: string) => {
     if (!data || data.length === 0) return [];
     if (!start && !end) return data;
@@ -233,17 +230,6 @@ export default function DashboardPage() {
       return true;
     });
   }, []);
-
-  const toggleEditMode = useCallback(() => {
-    setIsEditMode(prev => {
-      if (prev) {
-        setEditableDashboardData(null);
-      } else if (dashboardData) {
-        setEditableDashboardData(JSON.parse(JSON.stringify(dashboardData)));
-      }
-      return !prev;
-    });
-  }, [dashboardData]);
 
   const handleEditableDataChange = useCallback(
     (
@@ -501,18 +487,6 @@ export default function DashboardPage() {
     }
   }, [searchParams, setLoading, setError, setDashboardData]);
 
-  const handleSaveChanges = useCallback(() => {
-    if (editableDashboardData) {
-      setDashboardData(editableDashboardData);
-      console.log("Dados salvos (mocked):", editableDashboardData);
-    }
-  }, [editableDashboardData, setDashboardData]);
-
-  const handleDiscardChanges = useCallback(() => {
-    setEditableDashboardData(null);
-  }, [setEditableDashboardData]);
-
-
   const currentDashboardDataForDisplay = useMemo(() => {
     return isEditMode && editableDashboardData ? editableDashboardData : dashboardData;
   }, [isEditMode, editableDashboardData, dashboardData]);
@@ -614,6 +588,7 @@ export default function DashboardPage() {
       });
   }, [router, searchParams, clinicIdFromUrl]);
 
+  // Sincroniza editableDashboardData com dashboardData ao mudar o modo de edição
   useEffect(() => {
     if (isEditMode && dashboardData) {
       setEditableDashboardData(JSON.parse(JSON.stringify(dashboardData)));
@@ -629,7 +604,7 @@ export default function DashboardPage() {
 
   if (loading || loadingClinicas) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-900"> {/* Alterado para bg-gray-100 */}
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-500 mx-auto mb-4"></div>
           <p className="text-xl font-semibold">Carregando Dashboard...</p>
@@ -641,7 +616,7 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-red-500 p-8"> {/* Alterado para bg-gray-100 */}
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-red-500 p-8">
         <Card className="p-8 border border-red-400 rounded-lg shadow-md text-center bg-white">
           <h2 className="text-2xl font-bold mb-4 text-gray-900">Erro ao Carregar Dashboard</h2>
           <p className="mb-4 text-gray-700">{error}</p>
@@ -658,7 +633,7 @@ export default function DashboardPage() {
 
   if (!currentDashboardDataForDisplay || !clinicIdFromUrl) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-900"> {/* Alterado para bg-gray-100 */}
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-gray-900">
         <div className="text-center">
           <p className="text-xl font-semibold">Nenhum dado disponível para a clínica selecionada.</p>
           <p className="text-sm text-gray-600">Selecione uma clínica no menu superior ou verifique se os dados foram ingeridos pelo backend.</p>
@@ -667,57 +642,15 @@ export default function DashboardPage() {
     );
   }
 
-
   return (
-    <div className="space-y-10 p-8 bg-gray-100 min-h-screen text-gray-900"> {/* Alterado para bg-gray-100 */}
-      {/* Botão para Sair do Modo Visualização (sempre visível no canto superior direito) */}
-      {isViewMode && (
-        <div className="fixed top-24 right-4 z-50"> {/* Alterado de top-4 para top-24 */}
-          <Button
-            onClick={toggleViewMode}
-            className="flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg"
-          >
-            <FiX className="h-5 w-5 mr-2" /> Sair do Modo Visualização
-          </Button>
-        </div>
-      )}
-
-      {/* Botões de Edição (visíveis apenas no modo normal, não no modo visualização) */}
-      {!isViewMode && (
-        <div className="fixed top-24 right-4 z-50 flex space-x-2"> {/* Alterado de top-4 para top-24 */}
-          {isEditMode ? (
-            <>
-              <Button
-                onClick={handleSaveChanges}
-                className="flex items-center px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 shadow-lg"
-              >
-                <FiSave className="h-5 w-5 mr-2" /> Salvar Alterações
-              </Button>
-              <Button
-                onClick={handleDiscardChanges}
-                className="flex items-center px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-lg"
-              >
-                <FiX className="h-5 w-5 mr-2" /> Descartar Alterações
-              </Button>
-            </>
-          ) : (
-            <Button
-              onClick={toggleEditMode}
-              className="flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg"
-            >
-              <FiEdit className="h-5 w-5 mr-2" /> Entrar no Modo de Edição
-            </Button>
-          )}
-        </div>
-      )}
-
+    <div className="space-y-10 bg-gray-100 min-h-screen text-gray-900">
       <div>
         <h1 className="text-4xl font-extrabold text-gray-900">Dashboard de Marketing</h1>
         <p className="text-gray-600 mt-2 text-lg">Visão Geral de Performance da Empresa</p>
       </div>
 
       {/* Seção de Filtros */}
-      <section className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+      <section className={cn("bg-white p-6 rounded-lg shadow-md border border-gray-200", isViewMode && "hidden")}>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Filtros</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <div>
@@ -776,7 +709,6 @@ export default function DashboardPage() {
 
       <section className="space-y-10">
 
-        {/* Use o novo componente MetricCardsSection aqui */}
         <MetricCardsSection overviewMetricsMapped={overviewMetricsMapped} />
 
         <div className="space-y-6">

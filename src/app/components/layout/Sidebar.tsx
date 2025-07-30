@@ -13,7 +13,7 @@ import {
   LogOut,
   Bell,
   LayoutList,
-  MenuIcon // Adicionado MenuIcon para o logo minimizado
+  MenuIcon
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -28,10 +28,11 @@ interface NextRedirectError extends Error {
 const NEXT_REDIRECT_ERROR_CODE = 'NEXT_REDIRECT';
 
 interface SidebarProps {
-  isMinimized: boolean; // Novo prop
+  isMinimized: boolean;
+  isViewMode: boolean; 
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
   const pathname = usePathname();
 
   const handleLogout = async () => {
@@ -45,7 +46,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
       console.error('Erro ao fazer logout no Sidebar:', error);
       if (error instanceof Error) {
         toast.error(error.message || 'Erro ao encerrar sessão.');
-      
       } else {
         toast.error('Erro desconhecido ao encerrar sessão.');
       }
@@ -135,28 +135,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
     },
   ];
 
+  if (isViewMode) {
+    return null;
+  }
+
   return (
     <aside className={cn(
       "fixed left-0 top-0 h-full bg-white border-r border-gray-200 flex flex-col shadow-lg z-40 transition-all duration-300 ease-in-out",
-      isMinimized ? "w-16" : "w-64" // Largura ajustada
+      isMinimized ? "w-16" : "w-60" 
     )}>
       {/* Logo e Branding */}
       <div className={cn(
-        "flex items-center justify-center h-16 border-b border-gray-200", // Altura ajustada
+        "flex items-center justify-center h-20 border-b border-gray-200", 
         isMinimized ? "px-2" : "px-6"
       )}>
         {isMinimized ? (
-          <MenuIcon className="h-8 w-8 text-indigo-600" /> // Ícone quando minimizado
+          <MenuIcon className="h-8 w-8 text-indigo-600" /> 
         ) : (
-          <h2 className="text-2xl font-bold text-gray-900">MyBimed</h2> // Texto quando expandido
+          <h2 className="text-2xl font-bold text-gray-900">MyBimed</h2> 
         )}
       </div>
 
       {/* Navegação Principal */}
+
       <nav className="flex-1 overflow-y-auto py-4">
         {menuItems.map((section, index) => (
-          <div key={index} className="mb-4"> {/* Margem ajustada */}
-            {!isMinimized && ( // Títulos das seções visíveis apenas quando não minimizado
+          <div key={index} className="mb-4">
+            {!isMinimized && (
               <h3 className="px-6 mb-2 text-xs font-bold text-gray-500 uppercase tracking-wider">
                 {section.title}
               </h3>
@@ -168,17 +173,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
                     href={item.href}
                     className={cn(
                       `flex items-center py-2 px-4 text-sm font-medium transition-all duration-300 ease-in-out group relative overflow-hidden`,
-                      isMinimized ? "justify-center" : "mx-3 rounded-lg", // Centraliza ícones quando minimizado
+                      isMinimized ? "justify-center" : "mx-3 rounded-lg",
                       pathname === item.href
-                        ? 'bg-indigo-50 text-indigo-700 shadow-sm' // Fundo mais claro para item ativo
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-indigo-600' // Cores para item inativo
+                        ? 'bg-indigo-50 text-indigo-700 shadow-sm'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-indigo-600'
                     )}
                   >
                     {pathname === item.href && (
                       <span className="absolute left-0 top-0 h-full w-1 bg-indigo-600 rounded-l-lg animate-slide-in-left"></span>
                     )}
                     <item.icon className={cn("w-5 h-5", isMinimized ? "" : "mr-3", pathname === item.href ? "text-indigo-600" : "text-gray-500 group-hover:text-indigo-600")} />
-                    {!isMinimized && <span>{item.name}</span>} {/* Nome visível apenas quando não minimizado */}
+                    {!isMinimized && <span>{item.name}</span>}
                   </Link>
                 </li>
               ))}
@@ -188,6 +193,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
       </nav>
 
       {/* Footer da Sidebar (Sair e Copyright) */}
+      
       <div className={cn(
         "p-4 border-t border-gray-200 text-center bg-white",
         isMinimized ? "px-2" : "px-4"
@@ -203,7 +209,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
           <LogOut size={20} className={cn("", isMinimized ? "" : "mr-3")} />
           {!isMinimized && <span className="">Sair</span>}
         </button>
-        {!isMinimized && ( // Copyright visível apenas quando não minimizado
+        {!isMinimized && (
           <p className="text-xs text-gray-500 opacity-70 mt-2">
             © {new Date().getFullYear()} MyBimed
           </p>
@@ -213,4 +219,4 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
   );
 };
 
-export { Sidebar }; 
+export { Sidebar };

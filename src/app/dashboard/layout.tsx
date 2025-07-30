@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerSession, getCurrentUser } from '@/app/actions/auth';
-import { DashboardClientWrapper } from '@/app/dashboard/_components/DashboardClientWrapper'; 
+import { DashboardLayoutWithProvider } from '@/app/dashboard/_components/DashboardClientWrapper';
 
 export default async function DashboardLayout({
   children,
@@ -17,8 +17,8 @@ export default async function DashboardLayout({
   const userEmail = user?.email || null;
 
   return (
-    <DashboardClientWrapper userEmail={userEmail}>
+    <DashboardLayoutWithProvider userEmail={userEmail}>
       {children}
-    </DashboardClientWrapper>
+    </DashboardLayoutWithProvider>
   );
 }
