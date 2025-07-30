@@ -133,7 +133,7 @@ const Header: React.FC<HeaderProps> = ({
           variant="ghost"
           size="icon"
           onClick={onToggleSidebar}
-          className="mr-4 text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200"
+          className="mr-4 text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200 cursor-pointer"
           aria-label="Toggle Sidebar"
         >
           <MenuIcon className="h-6 w-6" />
@@ -147,7 +147,7 @@ const Header: React.FC<HeaderProps> = ({
           variant={isViewMode ? "default" : "outline"}
           onClick={onToggleViewMode}
           className={cn(
-            "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out",
+            "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out cursor-pointer",
             isViewMode
               ? "bg-indigo-600 text-white hover:bg-indigo-700 shadow-md"
               : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-800 shadow-sm hover:shadow-md"
@@ -162,10 +162,10 @@ const Header: React.FC<HeaderProps> = ({
           variant={isEditMode ? "default" : "outline"}
           onClick={onToggleEditMode}
           className={cn(
-            "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out",
+            "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out cursor-pointer",
             isEditMode
-              ? "bg-green-600 text-white hover:bg-green-700 shadow-md"
-              : "bg-white border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 shadow-sm hover:shadow-md"
+              ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md" // Alterado para emerald-600
+              : "bg-white border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 shadow-sm hover:shadow-md" // Alterado para emerald-500/600/700
           )}
         >
           <EditIcon className="h-5 w-5 mr-2" />
@@ -176,7 +176,7 @@ const Header: React.FC<HeaderProps> = ({
         <div className="relative" ref={exportDropdownRef}>
           <Button
             onClick={() => setShowExportDropdown(!showExportDropdown)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition shadow-md hover:shadow-lg"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition shadow-md hover:shadow-lg cursor-pointer"
           >
             <Download size={18} />
             Exportar {showExportDropdown ? <ChevronUp size={16} className="ml-1" /> : <ChevronDown size={16} className="ml-1" />}
@@ -186,14 +186,14 @@ const Header: React.FC<HeaderProps> = ({
               <Link
                 href="/dashboard/report-builder"
                 onClick={handleExportPdfClick}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
               >
                 <FileText size={16} /> Exportar para PDF
               </Link>
-              <button className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+              <button className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
                 <DownloadCloud size={16} /> Exportar para Excel
               </button>
-              <button className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+              <button className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors cursor-pointer">
                 <Printer size={16} /> Imprimir
               </button>
             </Card>
@@ -204,12 +204,12 @@ const Header: React.FC<HeaderProps> = ({
         <div className="relative" ref={notificationsDropdownRef}>
           <Button
             onClick={handleNotificationClick}
-            className="relative p-2 text-yellow-500 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md"
+            className="relative p-2 text-yellow-500 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md cursor-pointer"
             aria-label="Notificações e Alertas"
           >
             <Bell size={20} />
             {unreadNotificationsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center animate-bounce-once">
+              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center animate-bounce-once">
                 {unreadNotificationsCount}
               </span>
             )}
@@ -226,7 +226,7 @@ const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Settings Button */}
-        <Button className="p-2 text-gray-700 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md">
+        <Button className="p-2 text-gray-700 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md cursor-pointer">
           <Settings size={20} />
         </Button>
 
@@ -249,14 +249,14 @@ const Header: React.FC<HeaderProps> = ({
             <Card className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-40 p-1">
               <button
                 onClick={() => { router.push('/dashboard/configuracoes-conta'); setShowUserDropdown(false); }}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
               >
                 <User size={16} /> Configurações da Conta
               </button>
               <div className="border-t border-gray-200 my-1"></div>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 rounded-md transition-colors"
+                className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
               >
                 <LogOut size={16} /> Sair
               </button>

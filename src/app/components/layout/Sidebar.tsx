@@ -141,8 +141,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
 
   return (
     <aside className={cn(
-      // Removido 'fixed', 'left-0', 'top-0', 'h-full'
-      "flex flex-col bg-white border-r border-gray-200 shadow-lg z-40 transition-all duration-300 ease-in-out",
+      // Removido 'fixed', 'left-0', 'top-0', 'h-full', 'z-40'
+      "flex flex-col bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out",
       isMinimized ? "w-16" : "w-60"
     )}>
       {/* Logo e Branding */}
@@ -153,7 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
         {isMinimized ? (
           <MenuIcon className="h-8 w-8 text-indigo-600" />
         ) : (
-          <h2 className="text-2xl font-bold text-gray-900">MyBimed</h2>
+          <h2 className="text-2xl font-bold text-emerald-600">MyBimed</h2>
         )}
       </div>
 
@@ -172,7 +172,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
                   <Link
                     href={item.href}
                     className={cn(
-                      `flex items-center py-2 px-4 text-sm font-medium transition-all duration-300 ease-in-out group relative overflow-hidden`,
+                      `flex items-center py-2 px-4 text-sm font-medium transition-all duration-300 ease-in-out group relative overflow-hidden cursor-pointer`,
                       isMinimized ? "justify-center" : "mx-3 rounded-lg",
                       pathname === item.href
                         ? 'bg-indigo-50 text-indigo-700 shadow-sm'
@@ -200,7 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized, isViewMode }) => {
         <button
           onClick={handleLogout}
           className={cn(
-            "flex items-center p-3 rounded-lg w-full text-left transition-all duration-300 ease-in-out",
+            "flex items-center p-3 rounded-lg w-full text-left transition-all duration-300 ease-in-out cursor-pointer",
             "text-red-500 hover:bg-red-50 hover:text-red-600 font-semibold shadow-sm hover:shadow-md",
             isMinimized ? "justify-center" : ""
           )}

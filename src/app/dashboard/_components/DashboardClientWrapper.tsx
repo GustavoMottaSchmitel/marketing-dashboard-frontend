@@ -21,65 +21,61 @@ export const DashboardClientWrapper: React.FC<DashboardClientWrapperProps> = ({ 
     setIsSidebarMinimized(!isSidebarMinimized);
   };
 
+  // Determina a largura da sidebar dinamicamente para grid-template-columns
+  const sidebarWidth = isViewMode ? '0px' : (isSidebarMinimized ? 'theme(width.16)' : 'theme(width.60)');
+
   return (
-    <div className={cn(
-      "grid min-h-screen bg-gray-100",
-      isViewMode
-        ? "grid-cols-[0fr_1fr]" 
-        : isSidebarMinimized
-          ? "grid-cols-[theme(width.16)_1fr]" 
-          : "grid-cols-[theme(width.60)_1fr]"
-    )}>
-
-      {/* Sidebar - Agora um item do grid, não mais 'fixed' */}
-      {/* A visibilidade é controlada pelo 'grid-cols' e 'hidden' para acessibilidade */}
-
+    <div
+      className="grid min-h-screen"
+      style={{
+        // Define as colunas: uma para a sidebar (largura dinâmica) e outra para o resto do conteúdo (1fr)
+        gridTemplateColumns: `${sidebarWidth} 1fr`,
+        // Define as linhas: uma para o header (altura h-20) e outra para o conteúdo principal (1fr)
+        gridTemplateRows: 'theme(height.20) 1fr',
+      }}
+    >
+      {/* Sidebar - Posicionada na primeira coluna e estendendo-se por ambas as linhas */}
       <aside className={cn(
-        "flex flex-col bg-white border-r border-gray-200 shadow-lg z-40 transition-all duration-300 ease-in-out",
-        isViewMode ? "hidden" : "block"
+        "col-start-1 row-span-2 bg-white border-r border-gray-200 shadow-lg z-40 transition-all duration-300 ease-in-out",
+        isViewMode ? "hidden" : "block" // Oculta completamente se estiver no modo de visualização
       )}>
         <Sidebar isMinimized={isSidebarMinimized} isViewMode={isViewMode} />
       </aside>
 
-      {/* Área de Conteúdo Principal (Header + Main) - Agora um item do grid */}
+      {/* Header - Posicionado na segunda coluna, primeira linha */}
+      <header className={cn(
+        "col-start-2 row-start-1 flex-shrink-0",
+        isViewMode ? "hidden" : "block" // Oculta completamente se estiver no modo de visualização
+      )}>
+        <Header
+          userEmail={userEmail}
+          onToggleSidebar={handleToggleSidebar}
+          isViewMode={isViewMode}
+          onToggleViewMode={onToggleViewMode}
+          isEditMode={isEditMode}
+          onToggleEditMode={onToggleEditMode}
+        />
+      </header>
 
-      <div className="flex flex-col flex-1 transition-all duration-300 ease-in-out overflow-hidden">
+      {/* Conteúdo Principal - Posicionado na segunda coluna, segunda linha, e é a única área rolável */}
+      <main className={cn(
+        "col-start-2 row-start-2 p-8 overflow-y-auto", // Apenas o conteúdo principal rola verticalmente
+        isViewMode ? "p-4 pt-16" : "" // Ajusta o padding superior se o header estiver oculto no modo de visualização
+      )}>
+        {children}
+      </main>
 
-        {/* Header - Condicionalmente renderizado */}
-
-        {!isViewMode && (
-          <header className="flex-shrink-0">
-            <Header
-              userEmail={userEmail}
-              onToggleSidebar={handleToggleSidebar}
-              isViewMode={isViewMode}
-              onToggleViewMode={onToggleViewMode}
-              isEditMode={isEditMode}
-              onToggleEditMode={onToggleEditMode}
-            />
-          </header>
-        )}
-
-        {/* Botão "Sair do Modo Visualização" - Sempre visível quando em modo de visualização */}
-
-        {isViewMode && (
-          <div className="fixed top-4 right-4 z-50">
-            <Button
-              onClick={onToggleViewMode}
-              className="flex items-center px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-lg transition-colors duration-300"
-            >
-              <X className="h-5 w-5 mr-2" /> Sair do Modo Visualização
-            </Button>
-          </div>
-        )}
-
-        <main className={cn(
-          "flex-1 p-8 overflow-y-auto",
-          isViewMode ? "p-4 pt-16" : "" 
-        )}>
-          {children}
-        </main>
-      </div>
+      {/* Botão "Sair do Modo Visualização" - Posição fixa, fora do fluxo do grid para o modo de visualização */}
+      {isViewMode && (
+        <div className="fixed top-4 right-4 z-50">
+          <Button
+            onClick={onToggleViewMode}
+            className="flex items-center px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 shadow-lg transition-colors duration-300"
+          >
+            <X className="h-5 w-5 mr-2" /> Sair do Modo Visualização
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
