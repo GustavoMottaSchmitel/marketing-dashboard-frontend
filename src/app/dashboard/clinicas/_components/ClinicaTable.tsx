@@ -24,7 +24,7 @@ interface ClinicaTableProps {
 export const ClinicaTable = ({ clinicas, onEdit, onDelete }: ClinicaTableProps) => {
   if (clinicas.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500 text-lg bg-white rounded-lg shadow-md">
+      <div className="text-center py-8 text-gray-500 text-lg bg-white rounded-lg shadow-md border border-gray-200">
         <p>Nenhuma clínica encontrada com os filtros aplicados.</p>
         <p className="mt-2 text-sm">Tente ajustar seus critérios de busca ou adicionar uma nova clínica.</p>
       </div>
@@ -49,52 +49,60 @@ export const ClinicaTable = ({ clinicas, onEdit, onDelete }: ClinicaTableProps) 
             <TableRow key={clinica.id} className="group hover:bg-gray-50 transition-colors duration-200 ease-in-out">
               <TableCell className="px-6 py-4 whitespace-nowrap font-medium">
                 <div className="flex items-center space-x-3">
-                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-800 font-semibold text-lg shadow-sm flex-shrink-0">
-                    {clinica.name.charAt(0).toUpperCase()}
-                  </div>
+                  {clinica.logoUrl ? (
+                    <img src={clinica.logoUrl} alt={`${clinica.name} Logo`} className="h-10 w-10 rounded-full object-cover border border-gray-200 flex-shrink-0" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-800 font-semibold text-lg shadow-sm flex-shrink-0">
+                      {clinica.name ? clinica.name.charAt(0).toUpperCase() : 'N/A'}
+                    </div>
+                  )}
                   <div>
-                    <div className="text-gray-900 font-semibold">{clinica.name}</div>
-                    <div className="text-sm text-gray-600">{clinica.cnpj}</div>
+                    <div className="text-gray-900 font-semibold">{clinica.name || 'N/A'}</div>
+                    <div className="text-sm text-gray-600">{clinica.cnpj || 'CNPJ não informado'}</div>
                   </div>
                 </div>
               </TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center space-x-2 text-gray-700">
                   <FiMail className="text-indigo-600 flex-shrink-0" size={16} />
-                  <span>{clinica.email}</span>
+                  <span>{clinica.email || 'Email não informado'}</span>
                 </div>
                 <div className="flex items-center space-x-2 mt-1 text-gray-700">
                   <FiPhone className="text-indigo-600 flex-shrink-0" size={16} />
-                  <span>{clinica.telephone || clinica.cellphone}</span>
+                  <span>{clinica.telephone || clinica.cellphone || 'Telefone não informado'}</span>
                 </div>
               </TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center space-x-2 text-gray-700">
                   <FiMapPin className="text-indigo-600 flex-shrink-0" size={16} />
-                  <span>{clinica.city}, {clinica.state}</span>
+                  <span>{clinica.city || 'Cidade não informada'}, {clinica.state || 'Estado não informado'}</span>
                 </div>
               </TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">
                 <div className="flex flex-wrap gap-1">
-                  {clinica.especialidades.map((esp) => (
-                    <Badge
-                      key={esp.id}
-                      // Usando cores dinâmicas para as badges, mas garantindo contraste no tema claro
-                      style={{ backgroundColor: getSpecialtyColor(esp.nome), color: '#FFFFFF' }}
-                      className="text-white hover:opacity-80 transition-opacity duration-200"
-                    >
-                      {esp.nome}
-                    </Badge>
-                  ))}
+                  {clinica.especialidades && clinica.especialidades.length > 0 ? (
+                    clinica.especialidades.map((esp) => (
+                      <Badge
+                        key={esp.id}
+                        style={{ backgroundColor: esp.color || getSpecialtyColor(esp.nome), color: '#FFFFFF' }}
+                        className="text-white hover:opacity-80 transition-opacity duration-200"
+                      >
+                        {esp.nome}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-gray-500 text-sm italic">Nenhuma especialidade</span>
+                  )}
                 </div>
               </TableCell>
               <TableCell className="px-6 py-4 whitespace-nowrap">
                 <Badge
                   variant={clinica.ativo ? 'success' : 'destructive'}
-                  className={`${clinica.ativo
+                  className={`${
+                    clinica.ativo
                       ? 'bg-green-500 text-white hover:bg-green-600'
                       : 'bg-red-500 text-white hover:bg-red-600'
-                    }`}
+                  }`}
                 >
                   {clinica.ativo ? 'Ativo' : 'Inativo'}
                 </Badge>

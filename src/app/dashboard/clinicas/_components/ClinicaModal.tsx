@@ -3,11 +3,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FiX, FiUser, FiBriefcase, FiMail, FiPhone, FiSmartphone, FiMapPin, FiGlobe, FiFacebook, FiInstagram, FiPlusCircle, FiList, FiSave } from 'react-icons/fi';
+import { FiX, FiUser, FiBriefcase, FiMail, FiPhone, FiSmartphone, FiMapPin, FiGlobe, FiFacebook, FiInstagram, FiPlusCircle, FiList, FiSave, FiUploadCloud } from 'react-icons/fi';
 import { MultiSelectEspecialidades } from '../_components/MultiSelectEspecialidades';
 import { AddEspecialidadeModal } from '../_components/AddEspecialidadeModal';
 import { Button, Input, Label, Select, Card } from '../../../components/ui/custom-elements';
 import { Clinica, Especialidade } from '../../../types/clinicas';
+import { toast } from 'sonner';
 
 interface ClinicaModalProps {
   clinica: Clinica | null;
@@ -26,7 +27,6 @@ export const ClinicaModal = ({
   especialidadesDisponiveis,
   onEspecialidadeAdded
 }: ClinicaModalProps) => {
-  // Removido 'address' do Omit
   const [formData, setFormData] = useState<Omit<Clinica, 'id' | 'createdAt' | 'updatedAt'>>({
     name: '',
     cnpj: '',
@@ -36,21 +36,28 @@ export const ClinicaModal = ({
     especialidades: [],
     city: '',
     state: '',
-    metaAdsId: '',
-    instagramId: '',
+    metaAdsId: null, // Assegura que seja null se não houver valor
+    instagramId: null, // Assegura que seja null se não houver valor
     ativo: true,
+    logoUrl: null, // Usa logoUrl e inicializa como null
     ...clinica
   });
   const [isAddEspecialidadeModalOpen, setIsAddEspecialidadeModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [newLogoFile, setNewLogoFile] = useState<File | null>(null); // Para guardar o arquivo da nova logo
 
   useEffect(() => {
     if (clinica) {
-      // Removido a desestruturação de 'address'
       setFormData({
         ...clinica,
         especialidades: clinica.especialidades || [],
+        metaAdsId: clinica.metaAdsId || null,
+        instagramId: clinica.instagramId || null,
+        logoUrl: clinica.logoUrl || null, // Define a logo existente
       });
+      setLogoPreview(clinica.logoUrl || null);
+      setNewLogoFile(null); // Reseta o arquivo de nova logo ao carregar clínica existente
     } else {
       setFormData({
         name: '',
@@ -61,10 +68,13 @@ export const ClinicaModal = ({
         especialidades: [],
         city: '',
         state: '',
-        metaAdsId: '',
-        instagramId: '',
+        metaAdsId: null,
+        instagramId: null,
         ativo: true,
+        logoUrl: null,
       });
+      setLogoPreview(null);
+      setNewLogoFile(null);
     }
   }, [clinica]);
 
@@ -78,6 +88,22 @@ export const ClinicaModal = ({
     }));
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNewLogoFile(file); // Guarda o arquivo para simular upload depois
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string); // Prévia em Base64
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setNewLogoFile(null);
+      setLogoPreview(null);
+      setFormData(prev => ({ ...prev, logoUrl: null })); // Limpa logoUrl se nenhum arquivo for selecionado
+    }
+  };
+
   const handleEspecialidadesChange = (especialidadesSelecionadas: Especialidade[]) => {
     setFormData(prev => ({
       ...prev,
@@ -88,12 +114,29 @@ export const ClinicaModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+
+    let finalLogoUrl = formData.logoUrl;
+
+    // Se um novo arquivo foi selecionado, simula o upload e gera uma URL
+    if (newLogoFile) {
+      // Em um ambiente real: aqui você faria o upload do newLogoFile para um serviço de armazenamento
+      // e obteria a URL real. Por exemplo:
+      // const uploadedUrl = await uploadImageToCloudStorage(newLogoFile);
+      // finalLogoUrl = uploadedUrl;
+
+      // Para simulação, geramos uma URL de placeholder
+      finalLogoUrl = `https://placehold.co/150x150/E0E0E0/333333?text=Logo_${formData.name.replace(/\s/g, '_')}`;
+      toast.info('Simulando upload da logo e geração de URL...');
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Pequeno delay para simular o upload
+    }
+
     try {
       await onSave({
         ...formData,
         id: clinica?.id || 0,
         createdAt: clinica?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        logoUrl: finalLogoUrl, // Salva a URL final (simulada ou existente)
       } as Clinica);
     } finally {
       setIsSaving(false);
@@ -106,6 +149,33 @@ export const ClinicaModal = ({
       ...prev,
       especialidades: [...prev.especialidades, newEspecialidade]
     }));
+  };
+
+  const handleMetaAdsIntegration = () => {
+    if (!formData.cnpj) {
+      toast.error('Por favor, preencha o CNPJ da clínica antes de integrar com Meta Ads.');
+      return;
+    }
+
+    // URL de autenticação simulada para o Facebook/Meta Ads
+    // Em um ambiente real, esta URL seria do seu backend que orquestra o OAuth
+    const metaAdsAuthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=YOUR_APP_ID&redirect_uri=YOUR_REDIRECT_URI&state=${formData.cnpj}&scope=ads_management,instagram_basic,pages_show_list`;
+
+    window.open(metaAdsAuthUrl, '_blank');
+    toast.info('Redirecionando para autenticação do Meta Ads. Em uma aplicação real, isso iniciaria o fluxo OAuth.');
+
+    // Simular a atualização após um tempo
+    setTimeout(() => {
+      const simulatedAdAccountId = `ad_account_${Math.floor(Math.random() * 100000)}`;
+      const simulatedInstagramId = `instagram_user_${Math.floor(Math.random() * 100000)}`;
+
+      setFormData(prev => ({
+        ...prev,
+        metaAdsId: simulatedAdAccountId,
+        instagramId: simulatedInstagramId,
+      }));
+      toast.success('Integração com Meta Ads simulada com sucesso! Contas atualizadas.');
+    }, 3000);
   };
 
   return (
@@ -184,7 +254,7 @@ export const ClinicaModal = ({
                   <Input
                     id="telephone"
                     name="telephone"
-                    value={formData.telephone}
+                    value={formData.telephone || ''}
                     onChange={handleChange}
                     className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
@@ -198,7 +268,7 @@ export const ClinicaModal = ({
                   <Input
                     id="cellphone"
                     name="cellphone"
-                    value={formData.cellphone}
+                    value={formData.cellphone || ''}
                     onChange={handleChange}
                     required
                     className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
@@ -221,7 +291,7 @@ export const ClinicaModal = ({
                   <Input
                     id="city"
                     name="city"
-                    value={formData.city}
+                    value={formData.city || ''}
                     onChange={handleChange}
                     required
                     className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
@@ -234,7 +304,7 @@ export const ClinicaModal = ({
                 <Select
                   id="state"
                   name="state"
-                  value={formData.state}
+                  value={formData.state || ''}
                   onChange={handleChange}
                   options={[
                     { value: '', label: 'Selecione' },
@@ -287,7 +357,33 @@ export const ClinicaModal = ({
             </div>
           </div>
 
-          {/* SEÇÃO 4: Integrações */}
+          {/* SEÇÃO 4: Logo da Clínica */}
+          <div className="space-y-4 pb-4 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-indigo-600 flex items-center gap-2">
+              <FiUploadCloud className="text-gray-500" /> Logo da Clínica
+            </h3>
+            <div>
+              <Label htmlFor="logo-upload" className="mb-1 block text-sm font-medium text-gray-700">Upload de Logo</Label>
+              <Input
+                id="logo-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+              />
+              {logoPreview && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Prévia da Logo:</p>
+                  <img src={logoPreview} alt="Logo Preview" className="max-w-[150px] max-h-[150px] object-contain border border-gray-200 rounded-md p-1" />
+                  <p className="text-xs text-gray-500 mt-1">
+                    (Em produção, a imagem seria enviada para um serviço de armazenamento em nuvem e a URL seria salva no `logoUrl`.)
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* SEÇÃO 5: Integrações */}
           <div className="space-y-4">
             <h3 className="text-xl font-semibold text-indigo-600 flex items-center gap-2">
               <FiGlobe className="text-gray-500" /> Integrações
@@ -303,6 +399,7 @@ export const ClinicaModal = ({
                     value={formData.metaAdsId || ''}
                     onChange={handleChange}
                     className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
+                    placeholder="ID da conta de anúncios" // Adicionado placeholder
                   />
                 </div>
               </div>
@@ -317,10 +414,19 @@ export const ClinicaModal = ({
                     value={formData.instagramId || ''}
                     onChange={handleChange}
                     className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
+                    placeholder="ID do perfil do Instagram" // Adicionado placeholder
                   />
                 </div>
               </div>
             </div>
+            <Button
+              type="button"
+              onClick={handleMetaAdsIntegration}
+              variant="primary"
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow-sm transition-colors flex items-center justify-center"
+            >
+              <FiFacebook className="mr-2" /> Integrar com Meta Ads
+            </Button>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200">

@@ -1,8 +1,9 @@
+// src/app/dashboard/clinicas/_components/StatsCards.tsx
 'use client';
 
 import { FiActivity, FiCheckCircle, FiMap, FiLayers } from 'react-icons/fi';
 import { Card } from '../../../components/ui/custom-elements';
-import { cn } from '@/app/lib/utils'; 
+import { cn } from '@/app/lib/utils';
 
 interface StatsCardsProps {
   clinicasCount: number;
@@ -21,15 +22,15 @@ export const StatsCards = ({
     {
       title: 'Total de Clínicas',
       value: clinicasCount,
-      icon: <FiActivity className="h-5 w-5" />,
+      icon: <FiActivity className="h-6 w-6" />,
       color: 'text-blue-600',
       bgColorClass: 'bg-blue-100',
-      borderColorClass: 'bg-blue-200' 
+      borderColorClass: 'bg-blue-200'
     },
     {
       title: 'Clínicas Ativas',
       value: activeCount,
-      icon: <FiCheckCircle className="h-5 w-5" />,
+      icon: <FiCheckCircle className="h-6 w-6" />,
       color: 'text-green-600',
       bgColorClass: 'bg-green-100',
       borderColorClass: 'bg-green-200'
@@ -37,7 +38,7 @@ export const StatsCards = ({
     {
       title: 'Estados Atendidos',
       value: statesCount,
-      icon: <FiMap className="h-5 w-5" />,
+      icon: <FiMap className="h-6 w-6" />,
       color: 'text-purple-600',
       bgColorClass: 'bg-purple-100',
       borderColorClass: 'bg-purple-200'
@@ -45,7 +46,7 @@ export const StatsCards = ({
     {
       title: 'Especialidades Oferecidas',
       value: specialtiesCount,
-      icon: <FiLayers className="h-5 w-5" />,
+      icon: <FiLayers className="h-6 w-6" />,
       color: 'text-orange-600',
       bgColorClass: 'bg-orange-100',
       borderColorClass: 'bg-orange-200'
@@ -65,7 +66,6 @@ export const StatsCards = ({
               {stat.icon}
             </div>
           </div>
-          {/* Nova borda inferior colorida */}
           <div className={cn("absolute bottom-0 left-0 w-full h-1.5 rounded-b-lg", stat.borderColorClass)}></div>
         </Card>
       ))}

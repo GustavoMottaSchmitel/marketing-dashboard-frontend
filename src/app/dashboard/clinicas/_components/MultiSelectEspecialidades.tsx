@@ -69,7 +69,7 @@ export function MultiSelectEspecialidades({
             selected.map((esp) => (
               <Badge
                 key={esp.id}
-                style={{ backgroundColor: esp.color || getSpecialtyColor(esp.nome), color: '#FFFFFF' }} // Cores dinâmicas para as badges
+                style={{ backgroundColor: esp.color || getSpecialtyColor(esp.nome), color: '#FFFFFF' }}
                 className="mr-1 hover:opacity-80 transition-opacity duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -118,10 +118,11 @@ export function MultiSelectEspecialidades({
                   onClick={() => handleSelect(esp)}
                 >
                   <div
-                    className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border ${isSelected
+                    className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border ${
+                      isSelected
                         ? 'bg-indigo-600 text-white border-indigo-600'
                         : 'border-gray-300 bg-white'
-                      }`}
+                    }`}
                   >
                     {isSelected && <FiCheck className="h-3 w-3" />}
                   </div>

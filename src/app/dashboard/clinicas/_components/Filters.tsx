@@ -2,7 +2,7 @@
 
 'use client';
 
-import { FiSearch, FiRefreshCcw } from 'react-icons/fi'; // Adicionado FiRefreshCcw para o botão de reset
+import { FiSearch, FiX, FiRefreshCcw } from 'react-icons/fi';
 import { estadosBrasil } from '../../../lib/constants/states';
 import { Especialidade } from '../../../types/clinicas';
 import { Input, Label, Button, Select } from '../../../components/ui/custom-elements';
@@ -55,7 +55,7 @@ export const Filters = ({
             onChange={(e) => onFilterChange('state', e.target.value)}
             options={[
               { value: '', label: 'Todos estados' },
-              ...estadosBrasil.map(estado => ({ value: estado.sigla, label: `${estado.nome} (${estado.sigla})` })) 
+              ...estadosBrasil.map(estado => ({ value: estado.sigla, label: `${estado.nome} (${estado.sigla})` }))
             ]}
             className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
           />
@@ -85,7 +85,7 @@ export const Filters = ({
             onChange={(e) => onFilterChange('status', e.target.value)}
             options={[
               { value: '', label: 'Todos status' },
-              { value: 'true', label: 'Ativo' }, // Valores devem ser strings para o select
+              { value: 'true', label: 'Ativo' },
               { value: 'false', label: 'Inativo' }
             ]}
             className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
