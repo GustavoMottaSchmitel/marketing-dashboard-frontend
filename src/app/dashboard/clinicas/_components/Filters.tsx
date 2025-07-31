@@ -1,8 +1,7 @@
-// src/app/dashboard/clinicas/_components/Filters.tsx
 
 'use client';
 
-import { FiSearch, FiX, FiRefreshCcw } from 'react-icons/fi';
+import { FiSearch, FiRefreshCcw } from 'react-icons/fi';
 import { estadosBrasil } from '../../../lib/constants/states';
 import { Especialidade } from '../../../types/clinicas';
 import { Input, Label, Button, Select } from '../../../components/ui/custom-elements';
