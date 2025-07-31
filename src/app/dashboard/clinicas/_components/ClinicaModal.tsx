@@ -13,7 +13,7 @@ interface ClinicaModalProps {
   clinica: Clinica | null;
   onClose: () => void;
   onSave: (clinica: Clinica) => Promise<void>;
-  estados: { uf: string; nome: string }[];
+  estados: { sigla: string; nome: string }[];
   especialidadesDisponiveis: Especialidade[];
   onEspecialidadeAdded: () => void;
 }
@@ -238,7 +238,7 @@ export const ClinicaModal = ({
                   onChange={handleChange}
                   options={[
                     { value: '', label: 'Selecione' },
-                    ...estados.map(estado => ({ value: estado.uf, label: `${estado.nome} (${estado.uf})` }))
+                    ...estados.map(estado => ({ value: estado.sigla, label: `${estado.nome} (${estado.sigla})` }))
                   ]}
                   required
                   className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
