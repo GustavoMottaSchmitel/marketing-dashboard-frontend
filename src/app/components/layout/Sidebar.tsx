@@ -150,7 +150,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
         ) : (
           <>
             <h2 className="text-2xl font-bold text-emerald-600">MyBimed</h2>
-            {/* Adicionado o título Dashboard aqui */}
             <p className="text-sm text-gray-500 mt-1">Dashboard</p>
           </>
         )}

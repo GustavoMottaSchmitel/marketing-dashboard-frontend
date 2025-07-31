@@ -111,12 +111,8 @@ const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const handleNotificationClick = () => {
-    setShowNotificationsDropdown(prev => !prev);
-    if (!showNotificationsDropdown) {
-      fetchNotifications();
-    }
-  };
+  // REMOVIDA: A função handleNotificationClick não utilizada foi removida.
+  // A lógica de toggle e fetch já está no onClick do botão Bell.
 
   const handleExportPdfClick = () => {
     setShowExportDropdown(false);
@@ -203,7 +199,12 @@ const Header: React.FC<HeaderProps> = ({
         {/* Notifications Bell Button and Dropdown */}
         <div className="relative" ref={notificationsDropdownRef}>
           <Button
-            onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
+            onClick={() => { // Lógica de toggle e fetch direto no onClick
+              setShowNotificationsDropdown(prev => !prev);
+              if (!showNotificationsDropdown) {
+                fetchNotifications();
+              }
+            }}
             className="relative p-2 text-yellow-500 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md cursor-pointer"
             aria-label="Notificações e Alertas"
           >
