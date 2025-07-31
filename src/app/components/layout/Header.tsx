@@ -128,17 +128,17 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm relative z-30 h-20 flex items-center px-6 w-full">
       <div className="flex items-center">
-        {/* Botão de alternar Sidebar */}
+        {/* Botão de alternar Sidebar - Ajustado para ficar mais à esquerda */}
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggleSidebar}
-          className="mr-4 text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200 cursor-pointer"
+          className="mr-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors duration-200 cursor-pointer" // Reduzido mr-4 para mr-2
           aria-label="Toggle Sidebar"
         >
           <MenuIcon className="h-6 w-6" />
         </Button>
-        <h1 className="text-2xl font-bold text-gray-900 hidden sm:block">Dashboard</h1>
+        {/* O título "Dashboard" foi movido para a Sidebar */}
       </div>
 
       <div className="flex items-center space-x-4 ml-auto">
@@ -164,8 +164,8 @@ const Header: React.FC<HeaderProps> = ({
           className={cn(
             "py-2 px-4 rounded-lg transition-all duration-300 ease-in-out cursor-pointer",
             isEditMode
-              ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md" // Alterado para emerald-600
-              : "bg-white border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 shadow-sm hover:shadow-md" // Alterado para emerald-500/600/700
+              ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md"
+              : "bg-white border-emerald-500 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 shadow-sm hover:shadow-md"
           )}
         >
           <EditIcon className="h-5 w-5 mr-2" />
@@ -203,7 +203,7 @@ const Header: React.FC<HeaderProps> = ({
         {/* Notifications Bell Button and Dropdown */}
         <div className="relative" ref={notificationsDropdownRef}>
           <Button
-            onClick={handleNotificationClick}
+            onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
             className="relative p-2 text-yellow-500 bg-white hover:bg-gray-100 rounded-full transition-colors shadow-sm hover:shadow-md cursor-pointer"
             aria-label="Notificações e Alertas"
           >

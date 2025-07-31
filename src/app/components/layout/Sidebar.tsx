@@ -29,10 +29,10 @@ const NEXT_REDIRECT_ERROR_CODE = 'NEXT_REDIRECT';
 
 interface SidebarProps {
   isMinimized: boolean;
-  isViewMode: boolean; // Mantém a prop para controle de estado, mas não para renderização condicional direta
+  isViewMode: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => { // Removido isViewMode do destructuring
+const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => {
   const pathname = usePathname();
 
   const handleLogout = async () => {
@@ -142,13 +142,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isMinimized }) => { // Removido isVie
     )}>
       {/* Logo e Branding */}
       <div className={cn(
-        "flex items-center justify-center h-20 border-b border-gray-200",
+        "flex flex-col items-center justify-center h-20 border-b border-gray-200", // Alterado para flex-col
         isMinimized ? "px-2" : "px-6"
       )}>
         {isMinimized ? (
           <MenuIcon className="h-8 w-8 text-indigo-600" />
         ) : (
-          <h2 className="text-2xl font-bold text-emerald-600">MyBimed</h2>
+          <>
+            <h2 className="text-2xl font-bold text-emerald-600">MyBimed</h2>
+            {/* Adicionado o título Dashboard aqui */}
+            <p className="text-sm text-gray-500 mt-1">Dashboard</p>
+          </>
         )}
       </div>
 
