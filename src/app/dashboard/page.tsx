@@ -2,19 +2,33 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Select, Button, Table, TableHeader, TableBody, TableRow, TableHead, TableCell, Card, Input } from '@/app/components/ui/custom-elements';
+import { Button, Card } from '@/app/components/ui/custom-elements';
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell,
-  Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area,
-} from 'recharts';
-import { FiAlertTriangle, FiInfo, FiCheckCircle, FiXCircle } from 'react-icons/fi';
-
-import { cn } from '@/app/lib/utils';
-import { getDashboardData as fetchRealDashboardData, DashboardDataDTO, EvolutionData, ClinicOverviewData as BackendClinicOverviewData, CampaignData, CreativeData, OriginData, LeadTypeDistributionData, ROIHistoryData, InstagramInsightData, InstagramPostInteraction, ConversionFunnelData } from '../lib/dashboard';
+  getDashboardData as fetchRealDashboardData,
+  DashboardDataDTO,
+  EvolutionData,
+  CampaignData, // Importado
+  CreativeData, // Importado
+  OriginData, // Importado
+  LeadTypeDistributionData, // Importado
+  ROIHistoryData, // Importado
+  InstagramInsightData, // Importado
+  InstagramPostInteraction, // Importado
+  ConversionFunnelData, // Importado
+  ClinicOverviewData as BackendClinicOverviewData, // Importado
+} from '../lib/dashboard';
 import { getClinicas, MOCKED_CLINIC_ID_NUMERIC, MOCKED_CLINIC_NAME, Clinica } from '../lib/clinicas';
+import { useDashboardMode } from '@/app/contexts/DashboardModeContext';
+import { EditableField } from '@/app/types/dashboard';
 
+// Importando os novos componentes
 import { MetricCardsSection } from './_sections/MetricCardsSection';
-import { useDashboardMode } from '@/app/contexts/DashboardModeContext'; // Importar o hook do contexto
+import { DashboardFilters } from './_sections/DashboardFilters';
+import { BarChartsSection } from './_sections/BarChartsSection';
+import { LineAndOtherChartsSection } from './_sections/LineAndOtherChartsSection';
+import { RecentAlertsSection } from './_sections/RecentAlertsSection';
+import { ClinicsOverviewTable } from './_sections/ClinicsOverviewTable';
+import { ExpandedChartModal } from './_sections/ExpandedChartModal';
 
 // --- DADOS MOCKADOS PARA TESTE DO EDITOR ---
 const generateMockDashboardData = (): DashboardDataDTO => ({
@@ -87,7 +101,7 @@ const generateMockDashboardData = (): DashboardDataDTO => ({
     { date: '2024-03-01', likes: 200, comments: 15, saves: 5, shares: 2 },
     { date: '2024-03-02', likes: 250, comments: 20, saves: 8, shares: 3 },
     { date: '2024-03-03', likes: 180, comments: 10, saves: 3, shares: 1 },
-    { date: '2024-03-04', likes: 300, comments: 25, saves: 10, shares: 4 },
+    { date: '2022-03-04', likes: 300, comments: 25, saves: 10, shares: 4 },
   ],
   conversionFunnel: [
     { stage: 'Visitantes', value: 10000 },
@@ -110,94 +124,10 @@ const generateMockDashboardData = (): DashboardDataDTO => ({
 });
 // --- FIM DADOS MOCKADOS ---
 
-const PRIMARY_ACCENT = '#4F46E5';
-const SECONDARY_ACCENT = '#10B981';
-const SUCCESS_COLOR = '#16A34A';
-const WARNING_COLOR = '#F59E0B';
-const ERROR_COLOR = '#EF4444';
-const INFO_COLOR = '#3B82F6';
-
-const PIE_CHART_COLORS = [
-  PRIMARY_ACCENT,
-  SECONDARY_ACCENT,
-  SUCCESS_COLOR,
-  WARNING_COLOR,
-  ERROR_COLOR,
-  INFO_COLOR,
-  '#8B5CF6',
-  '#06B6D4',
-  '#F97316',
-  '#EC4899',
-];
-
-const GRADIENT_BAR_PRIMARY_START = '#6366F1';
-const GRADIENT_BAR_PRIMARY_END = '#4F46E5';
-
-const GRADIENT_BAR_SECONDARY_START = '#F87171';
-const GRADIENT_BAR_SECONDARY_END = '#EF4444';
-
-const GRADIENT_AREA_START = '#A78BFA';
-const GRADIENT_AREA_END = '#8B5CF6';
-
-type EditableField =
-  | { dataIndex: number; key: keyof CampaignData; dataType: 'campaignsData'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof CreativeData; dataType: 'creativesData'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof EvolutionData; dataType: 'leadsEvolution'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof EvolutionData; dataType: 'salesEvolution'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof OriginData; dataType: 'originData'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof LeadTypeDistributionData; dataType: 'leadTypeDistribution'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof ROIHistoryData; dataType: 'roiHistory'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof InstagramInsightData; dataType: 'instagramInsights'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof InstagramPostInteraction; dataType: 'instagramPostInteractions'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof ConversionFunnelData; dataType: 'conversionFunnel'; label: string; type?: string; }
-  | { dataIndex: number; key: keyof BackendClinicOverviewData; dataType: 'clinicsOverview'; label: string; type?: string; };
-
-interface ChartCardProps {
-  title: string;
-  children: React.ReactNode;
-  className?: string;
-  description?: string;
-  isEditMode?: boolean;
-  onDataChange: (field: EditableField, value: string) => void;
-  dataToEditKeys?: EditableField[];
-}
-
-const ChartCard: React.FC<ChartCardProps> = ({ title, children, className = '', description, isEditMode, onDataChange, dataToEditKeys }) => (
-  <Card className={cn("p-6 flex flex-col rounded-lg shadow-md bg-white border border-gray-200", className)}>
-    <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
-    {description && <p className="text-sm text-gray-600 mb-4">{description}</p>}
-    <div className="flex-1 min-h-[250px] flex items-center justify-center">
-      {children}
-    </div>
-    {isEditMode && onDataChange && dataToEditKeys && (
-      <div className="mt-4 p-3 bg-gray-50 rounded-md border border-gray-200">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">Editar Dados (Mocked)</h4>
-        {dataToEditKeys.map((editField, idx) => (
-          <div key={`${editField.dataIndex}-${String(editField.key)}-${editField.dataType}-${idx}`} className="flex items-center space-x-2 mb-1">
-            <label htmlFor={`edit-${String(editField.key)}-${editField.dataIndex}-${editField.dataType}`} className="text-gray-600 text-sm w-28">{editField.label}:</label>
-            <Input
-              id={`edit-${String(editField.key)}-${editField.dataIndex}-${editField.dataType}`}
-              type={editField.type || "number"}
-              placeholder="Valor"
-              onChange={(e) => onDataChange(editField, e.target.value)}
-              className="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded-md px-2 py-1"
-            />
-          </div>
-        ))}
-        <p className="text-xs text-gray-500 mt-2">
-          Os dados serão resetados ao sair do &apos;EDIT MODE&apos;.
-        </p>
-      </div>
-    )}
-  </Card>
-);
-
-// Remova as props isViewMode, onToggleViewMode, isEditMode, onToggleEditMode
 export default function DashboardPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Use o hook do contexto para obter os estados e funções
   const { isViewMode, isEditMode } = useDashboardMode();
 
   const clinicIdFromUrl = searchParams.get('clinicId');
@@ -215,6 +145,17 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Estado para o gráfico expandido no modal
+  const [expandedChart, setExpandedChart] = useState<{ type: string; data: unknown; title: string; } | null>(null);
+
+  const handleExpandChart = useCallback((type: string, data: unknown, title: string) => {
+    setExpandedChart({ type, data, title });
+  }, []);
+
+  const handleCloseExpandedChart = useCallback(() => {
+    setExpandedChart(null);
+  }, []);
 
   const getFilteredEvolutionData = useCallback((data: EvolutionData[], start: string, end: string) => {
     if (!data || data.length === 0) return [];
@@ -250,7 +191,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.campaignsData];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as CampaignData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as CampaignData;
@@ -262,7 +203,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.creativesData];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as CreativeData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as CreativeData;
@@ -274,7 +215,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.leadsEvolution];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as EvolutionData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as EvolutionData;
@@ -286,7 +227,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.salesEvolution];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as EvolutionData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as EvolutionData;
@@ -298,7 +239,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.originData];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as OriginData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as OriginData;
@@ -310,7 +251,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.leadTypeDistribution];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as LeadTypeDistributionData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as LeadTypeDistributionData;
@@ -322,7 +263,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.roiHistory];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as ROIHistoryData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as ROIHistoryData;
@@ -334,7 +275,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.instagramInsights];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as InstagramInsightData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as InstagramInsightData;
@@ -346,7 +287,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.instagramPostInteractions];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as InstagramPostInteraction) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as InstagramPostInteraction;
@@ -358,7 +299,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.conversionFunnel];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as ConversionFunnelData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as ConversionFunnelData;
@@ -370,7 +311,7 @@ export default function DashboardPage() {
             const targetArray = [...updatedData.clinicsOverview];
             const currentElement = targetArray[field.dataIndex];
             if (currentElement) {
-              targetArray[field.dataIndex] = {
+              (targetArray[field.dataIndex] as BackendClinicOverviewData) = {
                 ...currentElement,
                 [field.key]: valueToSet,
               } as BackendClinicOverviewData;
@@ -563,7 +504,7 @@ export default function DashboardPage() {
       roi: (clinic.recentLeads / (clinic.cpl * clinic.recentLeads)) * 100, // Exemplo de cálculo de ROI
       leads: clinic.recentLeads / 100, // Normalizando para o radar chart
       fullMark: 100
-    })).filter(item => !isNaN(item.cpl) && isFinite(item.cpl));
+    })).filter((item: { cpl: number }) => !isNaN(item.cpl) && isFinite(item.cpl));
   }, [currentDashboardDataForDisplay]);
 
   const clinicsOverviewForTable = useMemo(() => currentDashboardDataForDisplay?.clinicsOverview || [], [currentDashboardDataForDisplay]);
@@ -588,7 +529,6 @@ export default function DashboardPage() {
       });
   }, [router, searchParams, clinicIdFromUrl]);
 
-  // Sincroniza editableDashboardData com dashboardData ao mudar o modo de edição
   useEffect(() => {
     if (isEditMode && dashboardData) {
       setEditableDashboardData(JSON.parse(JSON.stringify(dashboardData)));
@@ -650,724 +590,70 @@ export default function DashboardPage() {
       </div>
 
       {/* Seção de Filtros */}
-      <section className={cn("bg-white p-6 rounded-lg shadow-md border border-gray-200", isViewMode && "hidden")}>
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Filtros</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          <div>
-            <label htmlFor="clinic-select" className="block text-sm font-medium text-gray-700 mb-1">Clínica</label>
-            <Select
-              id="clinic-select"
-              value={selectedClinicaFilter || ''}
-              onValueChange={handleClinicChange}
-              options={clinicas.map(c => ({ value: String(c.id), label: c.name }))}
-              placeholder="Selecione uma clínica"
-            />
-          </div>
-          <div>
-            <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 mb-1">Data Início</label>
-            <Input
-              id="start-date"
-              type="date"
-              value={startDate}
-              onChange={handleStartDateChange}
-              className="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded-md px-3 py-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 mb-1">Data Fim</label>
-            <Input
-              id="end-date"
-              type="date"
-              value={endDate}
-              onChange={handleEndDateChange}
-              className="w-full bg-white border border-gray-300 text-gray-800 text-sm rounded-md px-3 py-2"
-            />
-          </div>
-          <div>
-            <label htmlFor="campaign-select" className="block text-sm font-medium text-gray-700 mb-1">Campanha</label>
-            <Select
-              id="campaign-select"
-              value={selectedCampaign}
-              onValueChange={handleCampaignChange}
-              options={campaignOptions}
-              placeholder="Todas as Campanhas"
-            />
-          </div>
-          <div>
-            <label htmlFor="creative-select" className="block text-sm font-medium text-gray-700 mb-1">Criativo</label>
-            <Select
-              id="creative-select"
-              value={selectedCreative}
-              onValueChange={handleCreativeChange}
-              options={creativeOptions}
-              placeholder="Todos os Criativos"
-            />
-          </div>
-        </div>
-      </section>
-
+      <DashboardFilters
+        isViewMode={isViewMode}
+        selectedClinicaFilter={selectedClinicaFilter}
+        handleClinicChange={handleClinicChange}
+        clinicas={clinicas}
+        startDate={startDate}
+        handleStartDateChange={handleStartDateChange}
+        endDate={endDate}
+        handleEndDateChange={handleEndDateChange}
+        selectedCampaign={selectedCampaign}
+        handleCampaignChange={handleCampaignChange}
+        campaignOptions={campaignOptions}
+        selectedCreative={selectedCreative}
+        handleCreativeChange={handleCreativeChange}
+        creativeOptions={creativeOptions}
+      />
 
       <section className="space-y-10">
-
         <MetricCardsSection overviewMetricsMapped={overviewMetricsMapped} />
 
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">Gráficos de Barras</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            <ChartCard
-              title="Leads por Campanha"
-              description="Distribuição de leads pelas campanhas ativas."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={filteredCampaignsData.length > 0 ? [{ dataIndex: 0, key: 'leads', label: 'Leads (1ª Campanha)', dataType: 'campaignsData' }] : []}
-            >
-              {filteredCampaignsData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={filteredCampaignsData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="leadsBarGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={GRADIENT_BAR_PRIMARY_START} stopOpacity={0.9}/>
-                        <stop offset="95%" stopColor={GRADIENT_BAR_PRIMARY_END} stopOpacity={0.3}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="name" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => `${value.toLocaleString('pt-BR')} Leads`}
-                    />
-                    <Bar dataKey="leads" fill="url(#leadsBarGradient)" radius={[5, 5, 0, 0]} barSize={25} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
+        <BarChartsSection
+          isEditMode={isEditMode}
+          isViewMode={isViewMode}
+          handleEditableDataChange={handleEditableDataChange}
+          onExpandChart={handleExpandChart}
+          filteredCampaignsData={filteredCampaignsData}
+          filteredCreativesData={filteredCreativesData}
+          leadTypeDistributionData={leadTypeDistributionData}
+        />
 
-            <ChartCard
-              title="Custo por Lead por Campanha"
-              description="Custo médio por lead para cada campanha."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={filteredCampaignsData.length > 0 ? [{ dataIndex: 0, key: 'cpl', label: 'CPL (1ª Campanha)', dataType: 'campaignsData' }] : []}
-            >
-              {filteredCampaignsData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={filteredCampaignsData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="cplBarGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={GRADIENT_BAR_SECONDARY_START} stopOpacity={0.9}/>
-                        <stop offset="95%" stopColor={GRADIENT_BAR_SECONDARY_END} stopOpacity={0.3}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="name" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6B7280" tickLine={false} axisLine={false} tickFormatter={(value: number) => `R$ ${value.toFixed(0)}`} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => `R$ ${value.toFixed(2).replace('.', ',')}`}
-                    />
-                    <Bar dataKey="cpl" fill="url(#cplBarGradient)" radius={[5, 5, 0, 0]} barSize={25} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
+        <LineAndOtherChartsSection
+          isEditMode={isEditMode}
+          isViewMode={isViewMode}
+          handleEditableDataChange={handleEditableDataChange}
+          onExpandChart={handleExpandChart}
+          leadsEvolutionFiltered={leadsEvolutionFiltered}
+          salesEvolutionFiltered={salesEvolutionFiltered}
+          originDataFiltered={originDataFiltered}
+          roiHistoryData={roiHistoryData}
+          instagramInsightsData={instagramInsightsData}
+          instagramPostInteractionsData={instagramPostInteractionsData}
+          conversionFunnelData={conversionFunnelData}
+          clinicsComparisonData={clinicsComparisonData}
+          clinicIdFromUrl={clinicIdFromUrl}
+          currentDashboardDataForDisplay={currentDashboardDataForDisplay as DashboardDataDTO}
+        />
 
-            <ChartCard
-              title="Leads por Tipo e Campanha"
-              description="Canais preferidos dos leads por campanha."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={leadTypeDistributionData.length > 0 ? [{ dataIndex: 0, key: 'leads', label: `${leadTypeDistributionData[0]?.type || '1º Tipo'}:`, dataType: 'leadTypeDistribution' }] : []}
-            >
-              {leadTypeDistributionData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={leadTypeDistributionData}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="type" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => `${value.toLocaleString('pt-BR')} Leads`}
-                    />
-                    <Legend wrapperStyle={{ color: '#4B5563', paddingTop: '10px' }} />
-                    <Bar dataKey="leads" stackId="a" fill={PRIMARY_ACCENT} name="Leads" radius={[5, 5, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
+        <RecentAlertsSection recentAlerts={currentDashboardDataForDisplay.recentAlerts} />
 
-            <ChartCard
-              title="Desempenho por Criativo"
-              description="Cliques, leads e conversão por criativo."
-              className="lg:col-span-2"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={filteredCreativesData.length > 0 ? [
-                { dataIndex: 0, key: 'clicks', label: 'Cliques (1ª Campanha)', dataType: 'creativesData' },
-                { dataIndex: 0, key: 'leads', label: 'Leads (1ª Campanha)', dataType: 'creativesData' },
-                { dataIndex: 0, key: 'conversionRate', label: 'Conversão (1ª Campanha)', dataType: 'creativesData' },
-                { dataIndex: 0, key: 'ctr', label: 'CTR (1ª Campanha)', dataType: 'creativesData' },
-                { dataIndex: 0, key: 'views', label: 'Views (1ª Campanha)', dataType: 'creativesData' },
-                { dataIndex: 0, key: 'cpl', label: 'CPL (1ª Campanha)', dataType: 'creativesData' },
-              ] : []}
-            >
-              {filteredCreativesData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart layout="vertical" data={filteredCreativesData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" horizontal={false} />
-                    <XAxis type="number" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis type="category" dataKey="name" stroke="#6B7280" tickLine={false} axisLine={false} width={120} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number, name: string) => {
-                        if (name === 'ctr' || name === 'conversionRate') return `${value.toFixed(2)}%`;
-                        return value.toLocaleString('pt-BR');
-                      }}
-                    />
-                    <Legend wrapperStyle={{ color: '#4B5563', paddingTop: '10px' }} />
-                    <Bar dataKey="clicks" fill={SECONDARY_ACCENT} name="Cliques" radius={[0, 5, 5, 0]} />
-                    <Bar dataKey="leads" fill={SUCCESS_COLOR} name="Leads" radius={[0, 5, 5, 0]} />
-                    <Bar dataKey="conversionRate" fill={PRIMARY_ACCENT} name="Conversão (%)" radius={[0, 5, 5, 0]} />
-                    <Bar dataKey="ctr" fill={WARNING_COLOR} name="CTR (%)" radius={[0, 5, 5, 0]} />
-                    <Bar dataKey="views" fill={INFO_COLOR} name="Views" radius={[0, 5, 5, 0]} />
-                    <Bar dataKey="cpl" fill={ERROR_COLOR} name="CPL" radius={[0, 5, 5, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">Gráficos de Linha e Outros</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            <ChartCard
-              title="Evolução de Leads"
-              description="Tendência de leads ao longo do tempo."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={leadsEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Leads (1ª Campanha)', dataType: 'leadsEvolution' }] : []}
-            >
-              {leadsEvolutionFiltered.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={leadsEvolutionFiltered} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="date" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => `${value.toLocaleString('pt-BR')} Leads`}
-                    />
-                    <Line type="monotone" dataKey="value" stroke={SECONDARY_ACCENT} strokeWidth={3} dot={{ stroke: SECONDARY_ACCENT, strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Evolução de Vendas"
-              description="Tendência de vendas ao longo do tempo."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={salesEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Vendas (1ª Campanha)', dataType: 'salesEvolution' }] : []}
-            >
-              {salesEvolutionFiltered.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={salesEvolutionFiltered} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="date" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6B7280" tickLine={false} axisLine={false} tickFormatter={(value: number) => `R$ ${value.toFixed(0)}`} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => `R$ ${value.toFixed(2).replace('.', ',')}`}
-                    />
-                    <Line type="monotone" dataKey="value" stroke={SUCCESS_COLOR} strokeWidth={3} dot={{ stroke: SUCCESS_COLOR, strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Investimento vs. Leads"
-              description="Comparativo de investimento e leads gerados ao longo do tempo."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={leadsEvolutionFiltered.length > 0 && salesEvolutionFiltered.length > 0 ? [
-                { dataIndex: 0, key: 'value', label: 'Leads (1ª Campanha)', dataType: 'leadsEvolution' },
-                { dataIndex: 0, key: 'value', label: 'Investimento (1ª Campanha)', dataType: 'salesEvolution' }
-              ] : []}
-            >
-              {leadsEvolutionFiltered.length > 0 && salesEvolutionFiltered.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={leadsEvolutionFiltered.map((lead, index) => ({
-                    date: lead.date,
-                    leads: lead.value,
-                    investment: salesEvolutionFiltered[index]?.value / 100 || 0,
-                  }))} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="date" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis yAxisId="left" stroke={ERROR_COLOR} tickLine={false} axisLine={false} tickFormatter={(value: number) => `R$ ${value.toFixed(0)}`} />
-                    <YAxis yAxisId="right" orientation="right" stroke={PRIMARY_ACCENT} tickLine={false} axisLine={false} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number, name: string) => {
-                        if (name === 'investment') return `Investimento: R$ ${value.toFixed(2).replace('.', ',')}`;
-                        if (name === 'leads') return `Leads: ${value.toLocaleString('pt-BR')}`;
-                        return value;
-                      }}
-                    />
-                    <Legend wrapperStyle={{ color: '#4B5563', paddingTop: '10px' }} />
-                    <Line yAxisId="left" type="monotone" dataKey="investment" name="Investimento" stroke={ERROR_COLOR} strokeWidth={2} dot={false} />
-                    <Line yAxisId="right" type="monotone" dataKey="leads" name="Leads" stroke={PRIMARY_ACCENT} strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Distribuição de Origem dos Leads"
-              description="Canais que mais geram leads."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={originDataFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: `${originDataFiltered[0]?.name || '1º Canal'}:`, dataType: 'originData' }] : []}
-            >
-              {originDataFiltered.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={originDataFiltered}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                      stroke="#F0F0F0"
-                      paddingAngle={5}
-                    >
-                      {originDataFiltered.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} stroke={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} strokeWidth={2} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => `${value.toLocaleString('pt-BR')} Leads`}
-                    />
-                    <Legend wrapperStyle={{ color: '#4B5563', paddingTop: '10px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Evolução da Taxa de Conversão"
-              description="Tendência da taxa de conversão ao longo do tempo."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={leadsEvolutionFiltered.length > 0 ? [{ dataIndex: 0, key: 'value', label: 'Leads (1ª Campanha)', dataType: 'leadsEvolution' }] : []}
-            >
-              {leadsEvolutionFiltered.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={leadsEvolutionFiltered.map(item => ({
-                    date: item.date,
-                    conversionRate: Math.min(100, (item.value / 100) + (Math.random() * 10))
-                  }))} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="date" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6B7280" tickLine={false} axisLine={false} tickFormatter={(value: number) => `${value.toFixed(0)}%`} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => `${value.toFixed(1)}%`}
-                    />
-                    <Area type="monotone" dataKey="conversionRate" stroke={GRADIENT_AREA_START} fillOpacity={0.6} fill={`url(#conversionAreaGradient)`} />
-                    <defs>
-                      <linearGradient id="conversionAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={GRADIENT_AREA_START} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={GRADIENT_AREA_END} stopOpacity={0.1}/>
-                      </linearGradient>
-                    </defs>
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Funil de Conversão"
-              description="Visualização do funil de marketing e vendas."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={conversionFunnelData.length > 0 ? [{ dataIndex: 0, key: 'value', label: `${conversionFunnelData[0]?.stage || '1º Estágio'}:`, dataType: 'conversionFunnel' }] : []}
-            >
-              {conversionFunnelData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart layout="vertical" data={conversionFunnelData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" horizontal={false} />
-                    <XAxis type="number" stroke="#6B7280" tickLine={false} axisLine={false} hide />
-                    <YAxis type="category" dataKey="stage" stroke="#6B7280" tickLine={false} axisLine={false} width={100} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => `${value.toLocaleString('pt-BR')}`}
-                    />
-                    <Bar dataKey="value" fill={PRIMARY_ACCENT} barSize={40} radius={[0, 10, 10, 0]}>
-                      {conversionFunnelData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={PIE_CHART_COLORS[index % PIE_CHART_COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Evolução de ROI"
-              description="Histórico do Retorno sobre Investimento."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={roiHistoryData.length > 0 ? [
-                { dataIndex: 0, key: 'roi', label: 'ROI Real (1ª Campanha)', dataType: 'roiHistory' },
-                { dataIndex: 0, key: 'estimatedRoi', label: 'ROI Estimado (1ª Campanha)', dataType: 'roiHistory' },
-              ] : []}
-            >
-              {roiHistoryData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={roiHistoryData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="date" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6B7280" tickLine={false} axisLine={false} tickFormatter={(value: number) => `${value.toFixed(0)}%`} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => value.toFixed(2)}
-                    />
-                    <Legend wrapperStyle={{ color: '#4B5563', paddingTop: '10px' }} />
-                    <Line type="monotone" dataKey="roi" name="ROI Real" stroke={SUCCESS_COLOR} strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="estimatedRoi" name="ROI Estimado" stroke={PRIMARY_ACCENT} strokeDasharray="5 5" strokeWidth={2} dot={false} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Comparar Desempenho entre Clínicas"
-              description="Métricas comparativas entre clínicas."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={clinicsComparisonData.length > 0 ? [
-                { dataIndex: 0, key: 'cpl', label: 'CPL (1ª Campanha)', dataType: 'clinicsOverview' },
-                { dataIndex: 0, key: 'cpc', label: 'CPC (1ª Campanha)', dataType: 'clinicsOverview' },
-                { dataIndex: 0, key: 'performanceChange', label: 'Desempenho (1ª Campanha)', dataType: 'clinicsOverview' },
-                { dataIndex: 0, key: 'recentLeads', label: 'Leads Recentes (1ª Campanha)', dataType: 'clinicsOverview' },
-              ] : []}
-            >
-              {clinicsComparisonData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={clinicsComparisonData}>
-                    <PolarGrid stroke="#E0E0E0" />
-                    <PolarAngleAxis dataKey="subject" stroke="#6B7280" tick={{ fill: '#4B5563', fontSize: 12 }} />
-                    <PolarRadiusAxis angle={90} domain={[0, Math.max(...clinicsComparisonData.map(d => d.cpl * 10 || 0)) * 1.1]} stroke="#E0E0E0" tick={false} axisLine={false} />
-                    <Radar name={currentDashboardDataForDisplay?.clinicsOverview.find(c => c.id === parseInt(clinicIdFromUrl || '0'))?.name || 'Clínica Selecionada'} dataKey="cpl" stroke={PRIMARY_ACCENT} fill={PRIMARY_ACCENT} fillOpacity={0.6} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number, name: string) => {
-                        if (name === 'CPL') return `R$ ${(value * 10).toFixed(2)}`;
-                        if (name === 'CPC') return `R$ ${(value * 5).toFixed(2)}`;
-                        if (name === 'Conversão') return `${value.toFixed(1)}%`;
-                        if (name === 'ROI') return `${(value / 10).toFixed(2)}`;
-                        if (name === 'Leads') return `${(value * 100).toLocaleString('pt-BR')}`;
-                        return value.toLocaleString('pt-BR');
-                      }}
-                    />
-                    <Legend wrapperStyle={{ color: '#4B5563', paddingTop: '10px' }} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Engajamento do Perfil (Instagram)"
-              description="Comparativo de métricas de interação no Instagram."
-              className="lg:col-span-1"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={instagramInsightsData.length > 0 ? [{ dataIndex: 0, key: 'value', label: `${instagramInsightsData[0]?.metric || '1ª Campanha'}:`, dataType: 'instagramInsights' }] : []}
-            >
-              {instagramInsightsData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={instagramInsightsData}>
-                    <PolarGrid stroke="#E0E0E0" />
-                    <PolarAngleAxis dataKey="metric" stroke="#6B7280" tick={{ fill: '#4B5563', fontSize: 12 }} />
-                    <PolarRadiusAxis angle={90} domain={[0, Math.max(...instagramInsightsData.map(d => d.value)) * 1.1]} stroke="#E0E0E0" tick={false} axisLine={false} />
-                    <Radar name="Métricas" dataKey="value" stroke={PRIMARY_ACCENT} fill={PRIMARY_ACCENT} fillOpacity={0.6} />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => value.toLocaleString('pt-BR')}
-                    />
-                    <Legend wrapperStyle={{ color: '#4B5563', paddingTop: '10px' }} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-
-            <ChartCard
-              title="Interações por Dia (Instagram)"
-              description="Quantidade de interações em posts/stories por dia."
-              className="lg:col-span-2"
-              isEditMode={isEditMode}
-              onDataChange={handleEditableDataChange}
-              dataToEditKeys={instagramPostInteractionsData.length > 0 ? [
-                { dataIndex: 0, key: 'likes', label: 'Curtidas (1ª Campanha)', dataType: 'instagramPostInteractions' },
-                { dataIndex: 0, key: 'comments', label: 'Comentários (1ª Campanha)', dataType: 'instagramPostInteractions' },
-              ] : []}
-            >
-              {instagramPostInteractionsData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={instagramPostInteractionsData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" vertical={false} />
-                    <XAxis dataKey="date" stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <YAxis stroke="#6B7280" tickLine={false} axisLine={false} />
-                    <Tooltip
-                      cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-                      contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                      labelStyle={{ color: '#1F2937', fontWeight: 'bold' }}
-                      itemStyle={{ color: '#4B5563' }}
-                      formatter={(value: number) => value.toLocaleString('pt-BR')}
-                    />
-                    <Legend wrapperStyle={{ color: '#4B5563', paddingTop: '10px' }} />
-                    <Bar dataKey="likes" stackId="a" fill={PRIMARY_ACCENT} name="Curtidas" radius={[5, 5, 0, 0]} />
-                    <Bar dataKey="comments" stackId="a" fill={SECONDARY_ACCENT} name="Comentários" radius={[5, 5, 0, 0]} />
-                    <Bar dataKey="saves" stackId="a" fill={SUCCESS_COLOR} name="Salvos" radius={[5, 5, 0, 0]} />
-                    <Bar dataKey="shares" stackId="a" fill={WARNING_COLOR} name="Compartilhamentos" radius={[5, 5, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="text-center text-gray-500 flex items-center justify-center h-full">Nenhum dado de campanha disponível.</div>
-              )}
-            </ChartCard>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">Alertas Recentes</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentDashboardDataForDisplay.recentAlerts.length > 0 ? (
-              currentDashboardDataForDisplay.recentAlerts.map(alert => (
-                <Card key={alert.id} className={cn(`p-5 flex items-start gap-4 rounded-lg shadow-md`, {
-                  'border-yellow-300 bg-yellow-50': alert.type === 'warning',
-                  'border-blue-300 bg-blue-50': alert.type === 'info',
-                  'border-green-300 bg-green-50': alert.type === 'success',
-                  'border-red-300 bg-red-50': alert.type === 'error',
-                }, 'text-gray-900')}>
-                  <div className="flex-shrink-0 mt-1">
-                    {alert.type === 'warning' && <FiAlertTriangle size={20} className="text-yellow-600" />}
-                    {alert.type === 'info' && <FiInfo size={20} className="text-blue-600" />}
-                    {alert.type === 'success' && <FiCheckCircle size={20} className="text-green-600" />}
-                    {alert.type === 'error' && <FiXCircle size={20} className="text-red-600" />}
-                  </div>
-                  <div>
-                    <p className="text-lg font-medium text-gray-800">{alert.message}</p>
-                    <p className="text-sm text-gray-500 mt-1">Data: {new Date(alert.date).toLocaleDateString('pt-BR')}</p>
-                  </div>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center text-gray-500 py-10 col-span-full">
-                <p className="text-lg">Nenhum alerta recente.</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-800">Tabelas e Detalhes</h2>
-          <Card className="p-6 rounded-lg shadow-md bg-white border border-gray-200">
-            {clinicsOverviewForTable.length > 0 ? (
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow className="bg-gray-100 hover:bg-gray-200">
-                    <TableHead className="text-gray-600">Nome da Clínica</TableHead>
-                    <TableHead className="text-gray-600">Especialidades</TableHead>
-                    <TableHead className="text-gray-600">Campanhas Ativas</TableHead>
-                    <TableHead className="text-gray-600">Leads Recentes</TableHead>
-                    <TableHead className="text-gray-600">Desempenho (vs Mês Ant.)</TableHead>
-                    <TableHead className="text-gray-600">Alertas</TableHead>
-                    <TableHead className="text-gray-600">CPL</TableHead>
-                    <TableHead className="text-gray-600">CPC</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {clinicsOverviewForTable.map((clinic: BackendClinicOverviewData, index: number) => (
-                    <TableRow key={index} className="hover:bg-gray-50 border-gray-200 text-gray-800">
-                      <TableCell className="font-medium">
-                        {isEditMode ? (
-                          <Input
-                            type="text"
-                            value={clinic.name}
-                            onChange={(e) => handleEditableDataChange({ dataType: 'clinicsOverview', dataIndex: index, key: 'name', label: 'Nome da Clínica' }, e.target.value)}
-                            className="bg-white border-gray-300 text-gray-900 text-sm rounded-md px-2 py-1 w-full"
-                          />
-                        ) : clinic.name}
-                      </TableCell>
-                      <TableCell>
-                        {isEditMode ? (
-                          <Input
-                            type="text"
-                            value={clinic.specialties}
-                            onChange={(e) => handleEditableDataChange({ dataType: 'clinicsOverview', dataIndex: index, key: 'specialties', label: 'Especialidades' }, e.target.value)}
-                            className="bg-white border-gray-300 text-gray-900 text-sm rounded-md px-2 py-1 w-full"
-                          />
-                        ) : clinic.specialties}
-                      </TableCell>
-                      <TableCell>
-                        {isEditMode ? (
-                          <Input
-                            type="number"
-                            value={clinic.activeCampaigns.toString()}
-                            onChange={(e) => handleEditableDataChange({ dataType: 'clinicsOverview', dataIndex: index, key: 'activeCampaigns', label: 'Campanhas Ativas' }, e.target.value)}
-                            className="bg-white border-gray-300 text-gray-900 text-sm rounded-md px-2 py-1 w-full"
-                          />
-                        ) : clinic.activeCampaigns}
-                      </TableCell>
-                      <TableCell>
-                        {isEditMode ? (
-                          <Input
-                            type="number"
-                            value={clinic.recentLeads.toString()}
-                            onChange={(e) => handleEditableDataChange({ dataType: 'clinicsOverview', dataIndex: index, key: 'recentLeads', label: 'Leads Recentes' }, e.target.value)}
-                            className="bg-white border-gray-300 text-gray-900 text-sm rounded-md px-2 py-1 w-full"
-                          />
-                        ) : clinic.recentLeads}
-                      </TableCell>
-                      <TableCell className={`font-semibold ${parseFloat(clinic.performanceChange) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {isEditMode ? (
-                          <Input
-                            type="number"
-                            value={clinic.performanceChange}
-                            onChange={(e) => handleEditableDataChange({ dataType: 'clinicsOverview', dataIndex: index, key: 'performanceChange', label: 'Desempenho' }, e.target.value)}
-                            className="bg-white border-gray-300 text-gray-900 text-sm rounded-md px-2 py-1 w-full"
-                          />
-                        ) : (
-                          <>
-                            {parseFloat(clinic.performanceChange) >= 0 ? '▲' : '▼'} {clinic.performanceChange}%
-                          </>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-red-500">
-                        {isEditMode ? (
-                          <Input
-                            type="number"
-                            value={clinic.alerts?.toString() || ''}
-                            onChange={(e) => handleEditableDataChange({ dataType: 'clinicsOverview', dataIndex: index, key: 'alerts', label: 'Alertas' }, e.target.value)}
-                            className="bg-white border-gray-300 text-gray-900 text-sm rounded-md px-2 py-1 w-full"
-                          />
-                        ) : clinic.alerts?.toString() || '-'}
-                      </TableCell>
-                      <TableCell>
-                        {isEditMode ? (
-                          <Input
-                            type="number"
-                            value={clinic.cpl.toString()}
-                            onChange={(e) => handleEditableDataChange({ dataType: 'clinicsOverview', dataIndex: index, key: 'cpl', label: 'CPL' }, e.target.value)}
-                            className="bg-white border-gray-300 text-gray-900 text-sm rounded-md px-2 py-1 w-full"
-                          />
-                        ) : clinic.cpl.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        {isEditMode ? (
-                          <Input
-                            type="number"
-                            value={clinic.cpc.toString()}
-                            onChange={(e) => handleEditableDataChange({ dataType: 'clinicsOverview', dataIndex: index, key: 'cpc', label: 'CPC' }, e.target.value)}
-                            className="bg-white border-gray-300 text-gray-900 text-sm rounded-md px-2 py-1 w-full"
-                          />
-                        ) : clinic.cpc.toFixed(2)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-                <div className="text-center text-gray-500 py-10">Nenhum dado de clínica disponível com os filtros selecionados.</div>
-              )}
-          </Card>
-        </div>
-
+        <ClinicsOverviewTable
+          clinicsOverviewForTable={clinicsOverviewForTable}
+          isEditMode={isEditMode}
+          handleEditableDataChange={handleEditableDataChange}
+        />
       </section>
+
+      {/* Modal de Gráfico Expandido */}
+
+      <ExpandedChartModal
+        expandedChart={expandedChart}
+        onClose={handleCloseExpandedChart}
+        clinicIdFromUrl={clinicIdFromUrl}
+        currentDashboardDataForDisplay={currentDashboardDataForDisplay as DashboardDataDTO}
+      />
     </div>
   );
 }

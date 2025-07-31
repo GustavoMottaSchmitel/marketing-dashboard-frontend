@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiUsers, FiPercent, FiZap, FiEye, FiMousePointer, FiActivity } from 'react-icons/fi';
-import { Card } from '@/app/components/ui/custom-elements'; 
+import { Card } from '@/app/components/ui/custom-elements';
 
 const PRIMARY_ACCENT = '#4F46E5';
 const SECONDARY_ACCENT = '#10B981';
@@ -55,7 +55,7 @@ interface MetricCardsSectionProps {
     conversionRateTotal: number;
     roi: number;
     impressionsTotal: number;
-    conversionsTotal: number; 
+    conversionsTotal: number;
     ctr: number;
     cpl: number;
     cpc: number;
@@ -64,7 +64,7 @@ interface MetricCardsSectionProps {
 
 export const MetricCardsSection: React.FC<MetricCardsSectionProps> = ({ overviewMetricsMapped }) => {
   if (!overviewMetricsMapped) {
-    return null; 
+    return null;
   }
 
   return (
