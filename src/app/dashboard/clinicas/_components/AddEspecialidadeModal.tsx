@@ -27,7 +27,7 @@ export const AddEspecialidadeModal: React.FC<AddEspecialidadeModalProps> = ({ is
     } else if (nome) {
       setPreviewColor(getSpecialtyColor(nome));
     } else {
-      setPreviewColor('#A0A0C0');
+      setPreviewColor('#D1D5DB'); // Cor padrão para preview no tema claro (gray-300)
     }
   }, [nome, color]);
 
@@ -65,32 +65,32 @@ export const AddEspecialidadeModal: React.FC<AddEspecialidadeModalProps> = ({ is
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50 animate-fade-in">
-      <Card className="relative w-full max-w-md p-6 rounded-lg shadow-2xl overflow-y-auto max-h-[90vh] animate-scale-in">
-        <h2 className="text-2xl font-bold text-[#E0E0F0] mb-4 flex items-center gap-2">
-          <FiPlus className="text-[#8A2BE2]" /> Nova Especialidade
+    <div className="fixed inset-0 bg-gray-900/75 flex items-center justify-center p-4 z-50 animate-fade-in">
+      <Card className="relative w-full max-w-md p-6 rounded-lg shadow-2xl overflow-y-auto max-h-[90vh] animate-scale-in bg-white text-gray-900">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <FiPlus className="text-indigo-600" /> Nova Especialidade
         </h2>
-        <button onClick={onClose} className="absolute top-4 right-4 text-[#A0A0C0] hover:text-white transition-colors">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition-colors">
           <FiX className="h-6 w-6" />
         </button>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="nome">Nome da Especialidade *</Label>
+            <Label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">Nome da Especialidade *</Label>
             <Input
               id="nome"
               name="nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               required
-              className="bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
             />
           </div>
           <div>
-            <Label htmlFor="color" className="flex items-center justify-between">
+            <Label htmlFor="color" className="flex items-center justify-between text-sm font-medium text-gray-700 mb-1">
               Cor (Hex ou Nome CSS)
               <span
-                className="w-6 h-6 rounded-full border border-[#404058]"
+                className="w-6 h-6 rounded-full border border-gray-300"
                 style={{ backgroundColor: previewColor }}
                 title={`Cor de preview: ${previewColor}`}
               ></span>
@@ -101,17 +101,35 @@ export const AddEspecialidadeModal: React.FC<AddEspecialidadeModalProps> = ({ is
               value={color}
               onChange={(e) => setColor(e.target.value)}
               placeholder="#RRGGBB ou blue"
-              className="bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
             />
-            <p className="text-xs text-[#A0A0C0] mt-1">Se vazio, uma cor será gerada automaticamente.</p>
+            <p className="text-xs text-gray-500 mt-1">Se vazio, uma cor será gerada automaticamente.</p>
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+              disabled={loading}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md shadow-sm transition-colors"
+            >
               Cancelar
             </Button>
-            <Button type="submit" variant="primary" disabled={loading}>
-              {loading ? 'Adicionando...' : 'Adicionar'}
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={loading}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md shadow-sm transition-colors flex items-center"
+            >
+              {loading ? (
+                <>
+                  <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></span>
+                  Adicionando...
+                </>
+              ) : (
+                'Adicionar'
+              )}
             </Button>
           </div>
         </form>

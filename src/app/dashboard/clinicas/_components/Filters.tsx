@@ -2,10 +2,10 @@
 
 'use client';
 
-import { FiSearch, FiX } from 'react-icons/fi';
+import { FiSearch, FiX, FiRefreshCcw } from 'react-icons/fi'; // Adicionado FiRefreshCcw para o botão de reset
 import { estadosBrasil } from '../../../lib/constants/states';
 import { Especialidade } from '../../../types/clinicas';
-import { Input, Label, Button, Select } from '../../../components/ui/custom-elements'; 
+import { Input, Label, Button, Select } from '../../../components/ui/custom-elements';
 
 interface FiltersProps {
   searchTerm: string;
@@ -29,17 +29,17 @@ export const Filters = ({
   onResetFilters,
 }: FiltersProps) => {
   return (
-    <div className="bg-[#2C2C3E] p-6 rounded-lg border border-[#404058] shadow-xl"> {/* Mais padding e sombra */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"> {/* Aumenta o gap */}
+    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-md">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Pesquisa */}
         <div>
-          <Label htmlFor="search-input" className="mb-1 block">Pesquisar</Label> {/* Label com margin-bottom */}
+          <Label htmlFor="search-input" className="mb-1 block text-sm font-medium text-gray-700">Pesquisar</Label>
           <div className="relative">
-            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" /> 
-            <Input 
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
               id="search-input"
               placeholder="Nome, email, cidade..."
-              className="pl-9 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]" // Borda de foco roxa
+              className="pl-9 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -48,23 +48,23 @@ export const Filters = ({
 
         {/* Estado */}
         <div>
-          <Label htmlFor="filter-state" className="mb-1 block">Estado</Label>
-          <Select 
+          <Label htmlFor="filter-state" className="mb-1 block text-sm font-medium text-gray-700">Estado</Label>
+          <Select
             id="filter-state"
             value={filters.state}
             onChange={(e) => onFilterChange('state', e.target.value)}
             options={[
               { value: '', label: 'Todos estados' },
-              ...estadosBrasil.map(estado => ({ value: estado.sigla, label: `${estado.nome} (${estado.sigla})` }))
+              ...estadosBrasil.map(estado => ({ value: estado.sigla, label: `${estado.nome} (${estado.sigla})` })) 
             ]}
-            className="bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]" // Borda de foco roxa
+            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
           />
         </div>
 
         {/* Especialidade */}
         <div>
-          <Label htmlFor="filter-specialty" className="mb-1 block">Especialidade</Label>
-          <Select 
+          <Label htmlFor="filter-specialty" className="mb-1 block text-sm font-medium text-gray-700">Especialidade</Label>
+          <Select
             id="filter-specialty"
             value={filters.specialty}
             onChange={(e) => onFilterChange('specialty', e.target.value)}
@@ -72,34 +72,34 @@ export const Filters = ({
               { value: '', label: 'Todas especialidades' },
               ...especialidades.map(esp => ({ value: String(esp.id), label: esp.nome }))
             ]}
-            className="bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]" // Borda de foco roxa
+            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
           />
         </div>
 
         {/* Status */}
         <div>
-          <Label htmlFor="filter-status" className="mb-1 block">Status</Label>
-          <Select 
+          <Label htmlFor="filter-status" className="mb-1 block text-sm font-medium text-gray-700">Status</Label>
+          <Select
             id="filter-status"
             value={filters.status}
             onChange={(e) => onFilterChange('status', e.target.value)}
             options={[
               { value: '', label: 'Todos status' },
-              { value: 'Ativo', label: 'Ativo' },
-              { value: 'Inativo', label: 'Inativo' }
+              { value: 'true', label: 'Ativo' }, // Valores devem ser strings para o select
+              { value: 'false', label: 'Inativo' }
             ]}
-            className="bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]" // Borda de foco roxa
+            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
           />
         </div>
       </div>
 
-      <div className="flex justify-end mt-6"> {/* Mais margin-top */}
+      <div className="flex justify-end mt-6">
         <Button
           onClick={onResetFilters}
-          variant="ghost" 
-          className="text-sm flex items-center text-[#8A2BE2] hover:text-white hover:bg-[#3A3A4E] px-4 py-2 rounded-md" // Cores de hover mais suaves e fundo
+          variant="ghost"
+          className="text-sm flex items-center text-indigo-600 hover:text-indigo-800 hover:bg-gray-100 px-4 py-2 rounded-md transition-colors"
         >
-          <FiX className="mr-1 h-4 w-4" />
+          <FiRefreshCcw className="mr-1 h-4 w-4" />
           Limpar filtros
         </Button>
       </div>

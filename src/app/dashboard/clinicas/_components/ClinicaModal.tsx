@@ -3,19 +3,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FiX, FiUser, FiBriefcase, FiMail, FiPhone, FiSmartphone, FiMapPin, FiGlobe, FiFacebook, FiInstagram, FiPlusCircle, FiList } from 'react-icons/fi'; 
+import { FiX, FiUser, FiBriefcase, FiMail, FiPhone, FiSmartphone, FiMapPin, FiGlobe, FiFacebook, FiInstagram, FiPlusCircle, FiList, FiSave } from 'react-icons/fi';
 import { MultiSelectEspecialidades } from '../_components/MultiSelectEspecialidades';
 import { AddEspecialidadeModal } from '../_components/AddEspecialidadeModal';
-import { Button, Input, Label, Select, Card } from '../../../components/ui/custom-elements'; 
+import { Button, Input, Label, Select, Card } from '../../../components/ui/custom-elements';
 import { Clinica, Especialidade } from '../../../types/clinicas';
 
 interface ClinicaModalProps {
   clinica: Clinica | null;
   onClose: () => void;
   onSave: (clinica: Clinica) => Promise<void>;
-  estados: { sigla: string; nome: string }[]; 
+  estados: { uf: string; nome: string }[];
   especialidadesDisponiveis: Especialidade[];
-  onEspecialidadeAdded: () => void; 
+  onEspecialidadeAdded: () => void;
 }
 
 export const ClinicaModal = ({
@@ -26,6 +26,7 @@ export const ClinicaModal = ({
   especialidadesDisponiveis,
   onEspecialidadeAdded
 }: ClinicaModalProps) => {
+  // Removido 'address' do Omit
   const [formData, setFormData] = useState<Omit<Clinica, 'id' | 'createdAt' | 'updatedAt'>>({
     name: '',
     cnpj: '',
@@ -41,12 +42,14 @@ export const ClinicaModal = ({
     ...clinica
   });
   const [isAddEspecialidadeModalOpen, setIsAddEspecialidadeModalOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (clinica) {
-      setFormData({ 
+      // Removido a desestruturação de 'address'
+      setFormData({
         ...clinica,
-        especialidades: clinica.especialidades || [] 
+        especialidades: clinica.especialidades || [],
       });
     } else {
       setFormData({
@@ -84,18 +87,21 @@ export const ClinicaModal = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave({
-      ...formData,
-      id: clinica?.id || 0,
-      createdAt: clinica?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    } as Clinica);
+    setIsSaving(true);
+    try {
+      await onSave({
+        ...formData,
+        id: clinica?.id || 0,
+        createdAt: clinica?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as Clinica);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleNewEspecialidadeAdded = (newEspecialidade: Especialidade) => {
-    // Adiciona a nova especialidade à lista de especialidades disponíveis
-    // E também a seleciona automaticamente na MultiSelect
-    onEspecialidadeAdded(); // Recarrega a lista completa de especialidades na página pai
+    onEspecialidadeAdded();
     setFormData(prev => ({
       ...prev,
       especialidades: [...prev.especialidades, newEspecialidade]
@@ -103,56 +109,62 @@ export const ClinicaModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/75 flex items-center justify-center p-4 z-50 animate-fade-in"> 
-      <Card className="relative w-full max-w-2xl p-6 rounded-lg shadow-2xl overflow-y-auto max-h-[90vh] animate-scale-in">
-        <h2 className="text-2xl font-bold text-[#E0E0F0] mb-4"> 
+    <div className="fixed inset-0 bg-gray-900/75 flex items-center justify-center p-4 z-50 animate-fade-in">
+      <Card className="relative w-full max-w-2xl p-6 rounded-lg shadow-2xl overflow-y-auto max-h-[90vh] animate-scale-in bg-white text-gray-900">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4 border-b pb-3 border-gray-200">
           {clinica ? 'Editar Clínica' : 'Nova Clínica'}
         </h2>
-        <button onClick={onClose} className="absolute top-4 right-4 text-[#A0A0C0] hover:text-white transition-colors"> 
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded-full p-1 transition-colors duration-200"
+          aria-label="Fechar"
+        >
           <FiX className="h-6 w-6" />
-        </button>
+        </Button>
 
-        <form onSubmit={handleSubmit} className="space-y-6"> {/* Aumenta o espaçamento entre as seções */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* SEÇÃO 1: Cadastro da Clínica */}
-          <div className="space-y-4 pb-4 border-b border-[#404058]">
-            <h3 className="text-xl font-semibold text-[#8A2BE2] flex items-center gap-2">
-              <FiUser className="text-[#A0A0C0]" /> Cadastro da Clínica
+          <div className="space-y-4 pb-4 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-indigo-600 flex items-center gap-2">
+              <FiUser className="text-gray-500" /> Cadastro da Clínica
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="col-span-2">
-                <Label htmlFor="name" className="mb-1 block">Nome da Clínica *</Label>
+                <Label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">Nome da Clínica *</Label>
                 <div className="relative">
-                  <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" />
+                  <FiBriefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="pl-10 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                    className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="cnpj" className="mb-1 block">CNPJ *</Label>
+                <Label htmlFor="cnpj" className="mb-1 block text-sm font-medium text-gray-700">CNPJ *</Label>
                 <div className="relative">
-                  <FiList className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" />
+                  <FiList className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="cnpj"
                     name="cnpj"
                     value={formData.cnpj}
                     onChange={handleChange}
                     required
-                    className="pl-10 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                    className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="email" className="mb-1 block">E-mail *</Label>
+                <Label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">E-mail *</Label>
                 <div className="relative">
-                  <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" />
+                  <FiMail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="email"
                     type="email"
@@ -160,36 +172,36 @@ export const ClinicaModal = ({
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="pl-10 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                    className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="telephone" className="mb-1 block">Telefone</Label>
+                <Label htmlFor="telephone" className="mb-1 block text-sm font-medium text-gray-700">Telefone</Label>
                 <div className="relative">
-                  <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" />
+                  <FiPhone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="telephone"
                     name="telephone"
                     value={formData.telephone}
                     onChange={handleChange}
-                    className="pl-10 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                    className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="cellphone" className="mb-1 block">Celular *</Label>
+                <Label htmlFor="cellphone" className="mb-1 block text-sm font-medium text-gray-700">Celular *</Label>
                 <div className="relative">
-                  <FiSmartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" />
+                  <FiSmartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="cellphone"
                     name="cellphone"
                     value={formData.cellphone}
                     onChange={handleChange}
                     required
-                    className="pl-10 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                    className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
@@ -197,51 +209,51 @@ export const ClinicaModal = ({
           </div>
 
           {/* SEÇÃO 2: Localização */}
-          <div className="space-y-4 pb-4 border-b border-[#404058]">
-            <h3 className="text-xl font-semibold text-[#8A2BE2] flex items-center gap-2">
-              <FiMapPin className="text-[#A0A0C0]" /> Localização
+          <div className="space-y-4 pb-4 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-indigo-600 flex items-center gap-2">
+              <FiMapPin className="text-gray-500" /> Localização
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="city" className="mb-1 block">Cidade *</Label>
+                <Label htmlFor="city" className="mb-1 block text-sm font-medium text-gray-700">Cidade *</Label>
                 <div className="relative">
-                  <FiGlobe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" />
+                  <FiGlobe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="city"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
                     required
-                    className="pl-10 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                    className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="state" className="mb-1 block">Estado *</Label>
-                <Select 
+                <Label htmlFor="state" className="mb-1 block text-sm font-medium text-gray-700">Estado *</Label>
+                <Select
                   id="state"
                   name="state"
                   value={formData.state}
                   onChange={handleChange}
                   options={[
                     { value: '', label: 'Selecione' },
-                    ...estados.map(estado => ({ value: estado.sigla, label: `${estado.nome} (${estado.sigla})` }))
+                    ...estados.map(estado => ({ value: estado.uf, label: `${estado.nome} (${estado.uf})` }))
                   ]}
                   required
-                  className="bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                  className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                 />
               </div>
             </div>
           </div>
 
           {/* SEÇÃO 3: Especialidades e Status */}
-          <div className="space-y-4 pb-4 border-b border-[#404058]">
-            <h3 className="text-xl font-semibold text-[#8A2BE2] flex items-center gap-2">
-              <FiList className="text-[#A0A0C0]" /> Especialidades e Status
+          <div className="space-y-4 pb-4 border-b border-gray-200">
+            <h3 className="text-xl font-semibold text-indigo-600 flex items-center gap-2">
+              <FiList className="text-gray-500" /> Especialidades e Status
             </h3>
             <div className="col-span-2">
-              <Label className="mb-1 block">Especialidades</Label>
+              <Label className="mb-1 block text-sm font-medium text-gray-700">Especialidades</Label>
               <div className="flex items-center gap-2">
                 <MultiSelectEspecialidades
                   selected={formData.especialidades}
@@ -249,12 +261,12 @@ export const ClinicaModal = ({
                   especialidades={especialidadesDisponiveis}
                   className="flex-grow"
                 />
-                <Button 
-                  type="button" 
-                  variant="secondary" 
-                  size="icon" 
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
                   onClick={() => setIsAddEspecialidadeModalOpen(true)}
-                  className="bg-[#404058] hover:bg-[#2C2C3E] text-[#E0E0F0] shadow-md"
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 shadow-md"
                   title="Adicionar nova especialidade"
                 >
                   <FiPlusCircle className="h-5 w-5" />
@@ -269,59 +281,78 @@ export const ClinicaModal = ({
                 name="ativo"
                 checked={formData.ativo}
                 onChange={handleChange}
-                className="h-4 w-4 text-[#8A2BE2] border-[#404058] rounded focus:ring-[#8A2BE2] bg-[#2C2C3E] checked:bg-[#8A2BE2] checked:border-transparent"
+                className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 bg-white checked:bg-indigo-600 checked:border-transparent"
               />
-              <Label htmlFor="ativo">Clínica ativa</Label>
+              <Label htmlFor="ativo" className="text-sm text-gray-900">Clínica ativa</Label>
             </div>
           </div>
 
           {/* SEÇÃO 4: Integrações */}
           <div className="space-y-4">
-            <h3 className="text-xl font-semibold text-[#8A2BE2] flex items-center gap-2">
-              <FiGlobe className="text-[#A0A0C0]" /> Integrações
+            <h3 className="text-xl font-semibold text-indigo-600 flex items-center gap-2">
+              <FiGlobe className="text-gray-500" /> Integrações
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="metaAdsId" className="mb-1 block">Meta Ads ID</Label>
+                <Label htmlFor="metaAdsId" className="mb-1 block text-sm font-medium text-gray-700">Meta Ads ID</Label>
                 <div className="relative">
-                  <FiFacebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" />
+                  <FiFacebook className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="metaAdsId"
                     name="metaAdsId"
                     value={formData.metaAdsId || ''}
                     onChange={handleChange}
-                    className="pl-10 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                    className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="instagramId" className="mb-1 block">Instagram ID</Label>
+                <Label htmlFor="instagramId" className="mb-1 block text-sm font-medium text-gray-700">Instagram ID</Label>
                 <div className="relative">
-                  <FiInstagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#A0A0C0]" />
+                  <FiInstagram className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     id="instagramId"
                     name="instagramId"
                     value={formData.instagramId || ''}
                     onChange={handleChange}
-                    className="pl-10 bg-[#1C1C2C] border-[#404058] text-[#E0E0F0] placeholder-[#A0A0C0] focus:ring-[#8A2BE2]"
+                    className="pl-10 w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-900 bg-white"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex justify-end space-x-2 pt-4 border-t border-gray-200">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+              disabled={isSaving}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md shadow-sm transition-colors"
+            >
               Cancelar
             </Button>
-            <Button type="submit" variant="primary">
-              {clinica ? 'Atualizar' : 'Cadastrar'}
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isSaving}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md shadow-sm transition-colors flex items-center"
+            >
+              {isSaving ? (
+                <>
+                  <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></span>
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <FiSave className="mr-2" /> {clinica ? 'Atualizar' : 'Cadastrar'}
+                </>
+              )}
             </Button>
           </div>
         </form>
       </Card>
-
       {isAddEspecialidadeModalOpen && (
         <AddEspecialidadeModal
           isOpen={isAddEspecialidadeModalOpen}

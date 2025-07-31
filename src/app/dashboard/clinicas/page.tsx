@@ -58,7 +58,7 @@ export default function ClinicasDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, itemsPerPage, searchTerm, filters]); 
+  }, [currentPage, itemsPerPage, searchTerm, filters]);
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -79,7 +79,7 @@ export default function ClinicasDashboard() {
   }, [searchTerm, filters]);
 
 
-  const handleMarkAsRead = async (id: number) => { 
+  const handleMarkAsRead = async (id: number) => {
     try {
       await markAlertAsRead(id);
       toast.success('Alerta marcado como lido.');
@@ -124,7 +124,7 @@ export default function ClinicasDashboard() {
       toast.success('Clínica excluída com sucesso!', { id: toastId });
       setNotifications(prev => [
         {
-          id: Date.now(), 
+          id: Date.now(),
           message: `Clínica excluída com sucesso! (ID: ${id})`,
           type: 'info',
           date: new Date().toISOString(),
@@ -214,7 +214,10 @@ export default function ClinicasDashboard() {
           key={i}
           onClick={() => handlePageChange(i)}
           variant={currentPage === i ? "primary" : "secondary"}
-          className="mx-1 min-w-[40px] h-10 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out"
+          // Classes ajustadas para o tema branco
+          className="mx-1 min-w-[40px] h-10 rounded-full flex items-center justify-center transition-all duration-300 ease-in-out
+                     bg-gray-200 hover:bg-gray-300 text-gray-800
+                     data-[variant=primary]:bg-indigo-600 data-[variant=primary]:hover:bg-indigo-700 data-[variant=primary]:text-white"
         >
           {i + 1}
         </Button>
@@ -227,11 +230,11 @@ export default function ClinicasDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-900 font-sans">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-[#8A2BE2] mx-auto mb-4"></div>
-          <p className="text-xl font-semibold text-[#E0E0F0]">Carregando Clínicas...</p>
-          <p className="text-sm text-[#A0A0C0]">Buscando os dados mais recentes das suas clínicas.</p>
+          <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-xl font-semibold text-gray-800">Carregando Clínicas...</p>
+          <p className="text-sm text-gray-600">Buscando os dados mais recentes das suas clínicas.</p>
         </div>
       </div>
     );
@@ -239,14 +242,14 @@ export default function ClinicasDashboard() {
 
   if (totalElements === 0 && !searchTerm && filters.state === '' && filters.specialty === '' && filters.status === '') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white font-sans p-8">
-        <Card className="p-8 border border-[#404058] rounded-lg shadow-xl text-center max-w-md">
-          <h2 className="text-2xl font-bold mb-4 text-[#E0E0F0]">Nenhuma Clínica Cadastrada</h2>
-          <p className="mb-6 text-[#A0A0C0]">Parece que você ainda não adicionou nenhuma clínica. Comece agora!</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 text-gray-900 font-sans p-8">
+        <Card className="p-8 border border-gray-200 rounded-lg shadow-xl text-center max-w-md bg-white">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900">Nenhuma Clínica Cadastrada</h2>
+          <p className="mb-6 text-gray-700">Parece que você ainda não adicionou nenhuma clínica. Comece agora!</p>
           <Button
             onClick={() => { setCurrentClinica(null); setIsModalOpen(true); }}
             variant="primary"
-            className="flex items-center mx-auto bg-[#8A2BE2] hover:bg-[#6A5ACD] text-white px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ease-in-out"
+            className="flex items-center mx-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ease-in-out"
           >
             <FiPlus className="mr-2" /> Adicionar Primeira Clínica
           </Button>
@@ -256,11 +259,11 @@ export default function ClinicasDashboard() {
   }
 
   return (
-    <div className="space-y-8 p-8 bg-gray-900 min-h-screen text-white font-sans">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-[#404058]">
+    <div className="space-y-8 p-8 bg-gray-50 min-h-screen text-gray-900 font-sans">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-6 border-b border-gray-200">
         <div>
-          <h1 className="text-4xl font-extrabold text-[#8A2BE2]">Minhas Clínicas</h1>
-          <p className="text-[#A0A0C0] mt-2 text-lg">
+          <h1 className="text-4xl font-extrabold text-indigo-600">Minhas Clínicas</h1>
+          <p className="text-gray-700 mt-2 text-lg">
             {totalElements} clínica{totalElements !== 1 ? 's' : ''} cadastrada{totalElements !== 1 ? 's' : ''}
           </p>
         </div>
@@ -269,11 +272,12 @@ export default function ClinicasDashboard() {
           <Button
             onClick={() => setShowNotificationsDropdown(!showNotificationsDropdown)}
             variant="secondary"
-            className="flex items-center justify-center w-11 h-11 rounded-full bg-[#404058] hover:bg-[#2C2C3E] text-yellow-400 transition-all duration-300 ease-in-out relative shadow-md"
+            // Classes ajustadas para o tema branco
+            className="flex items-center justify-center w-11 h-11 rounded-full bg-gray-200 hover:bg-gray-300 text-yellow-600 transition-all duration-300 ease-in-out relative shadow-md"
           >
             <FiBell className="h-6 w-6" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-[#FF4500] text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce-once">
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center animate-bounce-once">
                 {unreadCount}
               </span>
             )}
@@ -282,7 +286,8 @@ export default function ClinicasDashboard() {
           <Button
             onClick={() => { setCurrentClinica(null); setIsModalOpen(true); }}
             variant="primary"
-            className="flex items-center bg-[#8A2BE2] hover:bg-[#6A5ACD] text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ease-in-out"
+            // Classes ajustadas para o tema branco
+            className="flex items-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ease-in-out"
           >
             <FiPlus className="mr-2" /> Adicionar Clínica
           </Button>
@@ -290,7 +295,8 @@ export default function ClinicasDashboard() {
           <Button
             onClick={() => setShowFilters(!showFilters)}
             variant="secondary"
-            className="flex items-center bg-[#404058] hover:bg-[#2C2C3E] text-[#E0E0F0] px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ease-in-out"
+            // Classes ajustadas para o tema branco
+            className="flex items-center bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg shadow-lg transition-all duration-300 ease-in-out"
           >
             <FiFilter className="mr-2" /> {showFilters ? 'Esconder Filtros' : 'Mais Filtros'}
           </Button>
@@ -300,7 +306,7 @@ export default function ClinicasDashboard() {
       <StatsCards {...stats} />
 
       {showFilters && (
-        <Card className="p-6 mt-4 border border-[#404058] rounded-lg shadow-xl bg-[#2C2C3E]">
+        <Card className="p-6 mt-4 border border-gray-200 rounded-lg shadow-xl bg-white">
           <Filters
             searchTerm={searchTerm}
             filters={filters}
@@ -312,7 +318,7 @@ export default function ClinicasDashboard() {
         </Card>
       )}
 
-      <Card className="p-0 border border-[#404058] rounded-lg shadow-xl bg-[#2C2C3E]">
+      <Card className="p-0 border border-gray-200 rounded-lg shadow-xl bg-white">
         <ClinicaTable
           clinicas={filteredClinicas}
           onEdit={openEditModal}
@@ -326,7 +332,8 @@ export default function ClinicasDashboard() {
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 0}
             variant="secondary"
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#404058] hover:bg-[#6A5ACD] text-[#E0E0F0] transition-all duration-300 ease-in-out"
+            // Classes ajustadas para o tema branco
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 transition-all duration-300 ease-in-out"
           >
             <FiChevronLeft />
           </Button>
@@ -335,7 +342,8 @@ export default function ClinicasDashboard() {
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages - 1}
             variant="secondary"
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#404058] hover:bg-[#6A5ACD] text-[#E0E0F0] transition-all duration-300 ease-in-out"
+            // Classes ajustadas para o tema branco
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 transition-all duration-300 ease-in-out"
           >
             <FiChevronRight />
           </Button>
