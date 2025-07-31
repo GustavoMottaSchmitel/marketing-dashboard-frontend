@@ -2,7 +2,7 @@
 
 'use client';
 
-import { FiSearch, FiX, FiRefreshCcw } from 'react-icons/fi'; // Adicionado FiRefreshCcw para o botão de reset
+import { FiSearch, FiRefreshCcw } from 'react-icons/fi'; // Adicionado FiRefreshCcw para o botão de reset
 import { estadosBrasil } from '../../../lib/constants/states';
 import { Especialidade } from '../../../types/clinicas';
 import { Input, Label, Button, Select } from '../../../components/ui/custom-elements';
