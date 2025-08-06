@@ -117,17 +117,10 @@ export const ClinicaModal = ({
 
     let finalLogoUrl = formData.logoUrl;
 
-    // Se um novo arquivo foi selecionado, simula o upload e gera uma URL
     if (newLogoFile) {
-      // Em um ambiente real: aqui você faria o upload do newLogoFile para um serviço de armazenamento
-      // e obteria a URL real. Por exemplo:
-      // const uploadedUrl = await uploadImageToCloudStorage(newLogoFile);
-      // finalLogoUrl = uploadedUrl;
-
-      // Para simulação, geramos uma URL de placeholder
       finalLogoUrl = `https://placehold.co/150x150/E0E0E0/333333?text=Logo_${formData.name.replace(/\s/g, '_')}`;
       toast.info('Simulando upload da logo e geração de URL...');
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Pequeno delay para simular o upload
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     try {
@@ -136,7 +129,7 @@ export const ClinicaModal = ({
         id: clinica?.id || 0,
         createdAt: clinica?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        logoUrl: finalLogoUrl, // Salva a URL final (simulada ou existente)
+        logoUrl: finalLogoUrl, 
       } as Clinica);
     } finally {
       setIsSaving(false);
@@ -157,8 +150,6 @@ export const ClinicaModal = ({
       return;
     }
 
-    // URL de autenticação simulada para o Facebook/Meta Ads
-    // Em um ambiente real, esta URL seria do seu backend que orquestra o OAuth
     const metaAdsAuthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=YOUR_APP_ID&redirect_uri=YOUR_REDIRECT_URI&state=${formData.cnpj}&scope=ads_management,instagram_basic,pages_show_list`;
 
     window.open(metaAdsAuthUrl, '_blank');
